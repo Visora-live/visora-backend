@@ -11,7 +11,7 @@ backend/
 │   ├── core/config.py                   # Settings via pydantic-settings
 │   ├── api/routes/
 │   │   ├── health.py                    # GET /api/health, GET /api/health/db
-│   │   └── cameras.py                   # GET /api/cameras/test-ip-webcam
+│   │   └── cameras.py                   # GET /api/cameras/test-ip-webcam, GET /api/cameras/test-ip-webcam/snapshot
 │   ├── adapters/ip_webcam_adapter.py    # URL builder for IP Webcam Android
 │   ├── schemas/camera.py                # Pydantic schemas
 │   ├── services/
@@ -155,7 +155,7 @@ Expected response (disconnected — HTTP 503):
 {
   "status": "error",
   "database": "disconnected",
-  "detail": "Database connection failed"
+  "detail": "Database connection is not available"
 }
 ```
 
