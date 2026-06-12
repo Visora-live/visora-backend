@@ -1,11 +1,10 @@
 from pydantic_settings import BaseSettings
-from pydantic import Field
 from typing import List
 
 
 class Settings(BaseSettings):
     APP_NAME: str = "VISORA Backend"
-    DATABASE_URL: str = "postgresql+psycopg://visora_user:visora_password@localhost:5432/visora_db"
+    DATABASE_URL: str = ""
     APP_VERSION: str = "0.1.0"
     ENVIRONMENT: str = "local"
     API_PREFIX: str = "/api"

@@ -21,6 +21,8 @@ def health_check():
 @router.get("/health/db")
 def health_db():
     try:
+        if engine is None:
+            raise RuntimeError("DATABASE_URL is not configured")
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
         return {"status": "ok", "database": "connected"}
@@ -30,6 +32,6 @@ def health_db():
             content={
                 "status": "error",
                 "database": "disconnected",
-                "detail": "Database connection failed",
+                "detail": "Database connection is not available",
             },
         )
