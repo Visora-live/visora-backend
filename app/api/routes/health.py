@@ -1,5 +1,9 @@
 from fastapi import APIRouter
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
+
 from app.core.config import settings
+from app.db.session import engine
 
 router = APIRouter()
 
@@ -12,3 +16,20 @@ def health_check():
         "version": settings.APP_VERSION,
         "environment": settings.ENVIRONMENT,
     }
+
+
+@router.get("/health/db")
+def health_db():
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return {"status": "ok", "database": "connected"}
+    except Exception:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "error",
+                "database": "disconnected",
+                "detail": "Database connection failed",
+            },
+        )

@@ -10,7 +10,7 @@ backend/
 │   ├── main.py                          # FastAPI app + CORS + routers
 │   ├── core/config.py                   # Settings via pydantic-settings
 │   ├── api/routes/
-│   │   ├── health.py                    # GET /api/health
+│   │   ├── health.py                    # GET /api/health, GET /api/health/db
 │   │   └── cameras.py                   # GET /api/cameras/test-ip-webcam
 │   ├── adapters/ip_webcam_adapter.py    # URL builder for IP Webcam Android
 │   ├── schemas/camera.py                # Pydantic schemas
@@ -20,7 +20,15 @@ backend/
 │   ├── infrastructure/storage/
 │   │   ├── local_storage.py             # Local storage placeholder
 │   │   └── s3_storage_placeholder.py    # AWS S3 placeholder
-│   └── models/                          # DB models (future)
+│   ├── db/
+│   │   ├── base.py                      # SQLAlchemy DeclarativeBase for future models
+│   │   └── session.py                   # Engine, SessionLocal, get_db()
+│   └── models/                          # DB models (future phases)
+├── alembic/                             # Database migrations
+│   ├── env.py
+│   ├── script.py.mako
+│   └── versions/
+├── alembic.ini
 ├── requirements.txt
 ├── .env.example
 └── README.md
@@ -57,6 +65,8 @@ pip install -r requirements.txt
 copy .env.example .env
 ```
 
+Edit `.env` and set `DATABASE_URL` with your local PostgreSQL credentials.
+
 ### 4. Run backend
 
 ```bash
@@ -66,6 +76,43 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 Backend running at: http://localhost:8000
 
 Interactive docs: http://localhost:8000/api/docs
+
+---
+
+## Database (PostgreSQL)
+
+PostgreSQL must be running locally to use `/api/health/db` and all future
+database features. Required for any phase that uses models or CRUD.
+
+### Create user and database
+
+Run in `psql` or pgAdmin:
+
+```sql
+CREATE USER visora_user WITH PASSWORD 'visora_password';
+CREATE DATABASE visora_db OWNER visora_user;
+GRANT ALL PRIVILEGES ON DATABASE visora_db TO visora_user;
+```
+
+### Configure .env
+
+```
+DATABASE_URL=postgresql+psycopg://visora_user:visora_password@localhost:5432/visora_db
+```
+
+### Run migrations (once models exist)
+
+```bash
+alembic upgrade head
+```
+
+Create a new migration after changing models:
+
+```bash
+alembic revision --autogenerate -m "describe change"
+```
+
+> `alembic/versions/` is empty until final table models are created in a future phase.
 
 ---
 
@@ -84,6 +131,31 @@ Expected response:
   "service": "VISORA Backend",
   "version": "0.1.0",
   "environment": "local"
+}
+```
+
+### GET /api/health/db
+
+Requires PostgreSQL running and `.env` configured with a valid `DATABASE_URL`.
+
+```bash
+curl http://localhost:8000/api/health/db
+```
+
+Expected response (connected):
+```json
+{
+  "status": "ok",
+  "database": "connected"
+}
+```
+
+Expected response (disconnected — HTTP 503):
+```json
+{
+  "status": "error",
+  "database": "disconnected",
+  "detail": "Database connection failed"
 }
 ```
 
@@ -121,15 +193,20 @@ the web interface (future phase), each camera will store its own editable
 Everything runs on `localhost` for now. The frontend (Angular, port 4200) and
 this backend (port 8000) communicate locally. No cloud connectivity required.
 
+### Database tables not created yet
+Final table schema (Tienda, Usuario, Rol, Camara, Evento, Identificacion) will
+be designed from the project database diagram in a future phase.
+`alembic/versions/` is intentionally empty until then.
+
 ### AWS is prepared, not implemented
 - `STORAGE_PROVIDER=s3` activates `S3StoragePlaceholder` (boto3 not installed yet).
 - `CAMERA_CONNECTION_MODE=cloud_ingest` reserved for future AWS Kinesis Video Streams.
 - `AWS_REGION` and `AWS_S3_BUCKET` variables exist in `.env.example` but are empty.
 - No AWS credentials are stored or required at this stage.
+- Future: local PostgreSQL will migrate to **Amazon RDS PostgreSQL** when moving to AWS.
 
 ### What is NOT implemented yet
 - Real camera stream consumption (no OpenCV)
-- Database / ORM
 - Authentication
 - AI detection models (facial recognition, firearm detection)
 - WebSocket events
