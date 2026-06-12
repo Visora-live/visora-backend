@@ -27,3 +27,6 @@ class Tienda(Base):
     )
 
     camaras: Mapped[list["Camara"]] = relationship("Camara", back_populates="tienda")
+    asignaciones_usuario: Mapped[list["TiendaUsuario"]] = relationship(
+        "TiendaUsuario", back_populates="tienda"
+    )

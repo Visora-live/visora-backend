@@ -112,7 +112,9 @@ Create a new migration after changing models:
 alembic revision --autogenerate -m "describe change"
 ```
 
-> **Fase 12B:** tablas base (`rol`, `tienda`, `usuario`, `camara`) creadas en migración `3f2a1b4c5d6e`.
+> **Fase 12B:** tablas base (`rol`, `tienda`, `usuario`, `camara`) — migración `3f2a1b4c5d6e`.
+>
+> **Fase 12C:** tablas operativas (`tienda_usuario`, `evento`, `evidencia`, `identificacion`) — migración `7a8b9c0d1e2f`. Lista para aplicar con `alembic upgrade head`.
 
 ### Execute migration
 

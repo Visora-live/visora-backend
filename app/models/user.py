@@ -26,3 +26,6 @@ class Usuario(Base):
     )
 
     rol: Mapped["Rol"] = relationship("Rol", back_populates="usuarios")
+    asignaciones_tienda: Mapped[list["TiendaUsuario"]] = relationship(
+        "TiendaUsuario", back_populates="usuario"
+    )
