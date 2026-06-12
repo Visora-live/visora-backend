@@ -179,6 +179,49 @@ Expected response:
 }
 ```
 
+### GET /api/cameras/test-ip-webcam/snapshot
+
+Tests real connectivity to an IP Webcam device. Makes an HTTP GET to `http://host:port/shot.jpg`
+and reports whether the camera responded correctly.
+
+**Requirements:**
+- Android device running IP Webcam app, same local network as this PC.
+- Replace `192.168.18.84` with the IP shown in the IP Webcam app.
+- The IP changes when the device reconnects to Wi-Fi — always check the app.
+- No AI, no OpenCV, no image processing — only connectivity check.
+
+```bash
+curl "http://localhost:8000/api/cameras/test-ip-webcam/snapshot?host=192.168.18.84&port=8080"
+```
+
+Expected response (camera reachable):
+```json
+{
+  "camera_type": "ip_webcam_android",
+  "connection_mode": "local_snapshot",
+  "input": { "host": "192.168.18.84", "port": 8080 },
+  "snapshot_url": "http://192.168.18.84:8080/shot.jpg",
+  "reachable": true,
+  "status_code": 200,
+  "content_type": "image/jpeg",
+  "message": "IP Webcam snapshot is reachable"
+}
+```
+
+Expected response (camera not reachable — timeout or wrong IP):
+```json
+{
+  "camera_type": "ip_webcam_android",
+  "connection_mode": "local_snapshot",
+  "input": { "host": "192.168.18.84", "port": 8080 },
+  "snapshot_url": "http://192.168.18.84:8080/shot.jpg",
+  "reachable": false,
+  "status_code": null,
+  "content_type": null,
+  "message": "IP Webcam is not reachable at the given host and port"
+}
+```
+
 ---
 
 ## Notes

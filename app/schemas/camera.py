@@ -27,3 +27,14 @@ class CameraConnectionResponse(BaseModel):
     snapshot_url: str
     mjpeg_url: str
     message: str
+
+
+class CameraSnapshotTestResponse(BaseModel):
+    camera_type: str
+    connection_mode: str
+    input: dict
+    snapshot_url: str
+    reachable: bool
+    status_code: Optional[int]
+    content_type: Optional[str]
+    message: str
