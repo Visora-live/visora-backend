@@ -112,7 +112,28 @@ Create a new migration after changing models:
 alembic revision --autogenerate -m "describe change"
 ```
 
-> `alembic/versions/` is empty until final table models are created in a future phase.
+> **Fase 12B:** tablas base (`rol`, `tienda`, `usuario`, `camara`) creadas en migración `3f2a1b4c5d6e`.
+
+### Execute migration
+
+```bash
+alembic upgrade head
+```
+
+### Revert last migration
+
+```bash
+alembic downgrade -1
+```
+
+### Check migration history
+
+```bash
+alembic history
+alembic current
+```
+
+> Run all alembic commands from the `backend/` directory (where `alembic.ini` lives).
 
 ---
 
