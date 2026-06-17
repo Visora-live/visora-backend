@@ -205,6 +205,55 @@ alembic current
 }
 ```
 
+---
+
+## Fase 13C — CRUD eventos y alertas
+
+> Frontend no modificado. Sin IA. Sin WebSocket. Sin evidencias. Sin auth.
+
+### Endpoints nuevos
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/api/events` | Listar eventos (filtra por `camara_id`, `estado`, `severidad`) |
+| `GET` | `/api/events/{id}` | Obtener evento |
+| `POST` | `/api/events` | Crear evento |
+| `PATCH` | `/api/events/{id}` | Actualizar evento (parcial) |
+| `DELETE` | `/api/events/{id}` | Borrado lógico (estado → cerrado) |
+| `GET` | `/api/alerts` | Listar alertas (filtra por `estado`, `severidad`, `tipo`, `tienda_id`, `camara_id`, `evento_id`) |
+| `GET` | `/api/alerts/{id}` | Obtener alerta |
+| `POST` | `/api/alerts` | Crear alerta |
+| `PATCH` | `/api/alerts/{id}` | Actualizar alerta — si estado = `resuelta`, asigna `resolved_at` automáticamente |
+| `DELETE` | `/api/alerts/{id}` | Borrado lógico (estado → descartada) |
+
+### Ejemplo POST /api/events
+
+```json
+{
+  "tipo": "camara_offline",
+  "severidad": "media",
+  "estado": "abierto",
+  "comentario": "Evento registrado manualmente para prueba",
+  "camara_id": 1
+}
+```
+
+### Ejemplo POST /api/alerts
+
+```json
+{
+  "titulo": "Cámara sin conexión",
+  "descripcion": "La cámara de entrada no responde",
+  "tipo": "camara_offline",
+  "severidad": "media",
+  "estado": "abierta",
+  "camara_id": 1,
+  "tienda_id": 1
+}
+```
+
+---
+
 ### password_hash
 
 No se acepta ni se expone desde el cliente. El servicio asigna internamente `$pending$auth-not-configured` hasta que se implemente la fase de autenticación real.

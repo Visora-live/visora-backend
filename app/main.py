@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.api.routes import health, cameras, stores, roles, users
+from app.api.routes import health, cameras, stores, roles, users, events, alerts
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -25,3 +25,5 @@ app.include_router(cameras.router, prefix=settings.API_PREFIX)
 app.include_router(stores.router, prefix=settings.API_PREFIX)
 app.include_router(roles.router, prefix=settings.API_PREFIX)
 app.include_router(users.router, prefix=settings.API_PREFIX)
+app.include_router(events.router, prefix=settings.API_PREFIX)
+app.include_router(alerts.router, prefix=settings.API_PREFIX)
