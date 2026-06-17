@@ -162,6 +162,55 @@ alembic current
 | `PATCH` | `/api/cameras/{id}` | Actualizar cámara (parcial) |
 | `DELETE` | `/api/cameras/{id}` | Borrado lógico (estado → inactiva) |
 
+---
+
+## Fase 13B — CRUD roles y usuarios
+
+> Frontend no modificado. Sin auth. Sin JWT. Sin login. Sin hashing real. Sin IA.
+>
+> `password_hash` no se expone en ninguna respuesta. Usuarios creados con placeholder interno hasta Fase de auth.
+
+### Endpoints nuevos
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/api/roles` | Listar roles |
+| `GET` | `/api/roles/{id}` | Obtener rol |
+| `POST` | `/api/roles` | Crear rol |
+| `PATCH` | `/api/roles/{id}` | Actualizar rol (parcial) |
+| `DELETE` | `/api/roles/{id}` | Borrado físico (solo si sin usuarios) — 409 si en uso |
+| `GET` | `/api/users` | Listar usuarios (filtra por `rol_id`, `estado`) |
+| `GET` | `/api/users/{id}` | Obtener usuario |
+| `POST` | `/api/users` | Crear usuario |
+| `PATCH` | `/api/users/{id}` | Actualizar usuario (parcial) |
+| `DELETE` | `/api/users/{id}` | Borrado lógico (estado → inactivo) |
+
+### Ejemplo POST /api/roles
+
+```json
+{
+  "nombre": "admin",
+  "descripcion": "Administrador del sistema"
+}
+```
+
+### Ejemplo POST /api/users
+
+```json
+{
+  "username": "admin",
+  "email": "admin@visora.local",
+  "estado": "activo",
+  "rol_id": 1
+}
+```
+
+### password_hash
+
+No se acepta ni se expone desde el cliente. El servicio asigna internamente `$pending$auth-not-configured` hasta que se implemente la fase de autenticación real.
+
+---
+
 ### Ejemplo POST /api/stores
 
 ```json
