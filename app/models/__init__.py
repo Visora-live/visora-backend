@@ -6,6 +6,7 @@ from app.models.store_user import TiendaUsuario
 from app.models.event import Evento
 from app.models.evidence import Evidencia
 from app.models.identification import Identificacion
+from app.models.alert import Alerta
 
 __all__ = [
     "Rol",
@@ -16,4 +17,5 @@ __all__ = [
     "Evento",
     "Evidencia",
     "Identificacion",
+    "Alerta",
 ]

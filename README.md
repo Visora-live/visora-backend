@@ -112,9 +112,13 @@ Create a new migration after changing models:
 alembic revision --autogenerate -m "describe change"
 ```
 
-> **Fase 12B:** tablas base (`rol`, `tienda`, `usuario`, `camara`) — migración `3f2a1b4c5d6e`.
+> **Fase 12B:** tablas base (`rol`, `tienda`, `usuario`, `camara`) — migración `3f2a1b4c5d6e`. Aplicada.
 >
-> **Fase 12C:** tablas operativas (`tienda_usuario`, `evento`, `evidencia`, `identificacion`) — migración `7a8b9c0d1e2f`. Lista para aplicar con `alembic upgrade head`.
+> **Fase 12C:** tablas operativas (`tienda_usuario`, `evento`, `evidencia`, `identificacion`) — migración `7a8b9c0d1e2f`. Aplicada.
+>
+> **Fase 12C-fix:** índice `ix_tienda_usuario_usuario_id` + alineación de `server_default` en modelos — migración `a1b2c3d4e5f6`. Aplicada.
+>
+> **Fase 12D:** tabla `alerta` con FKs opcionales a `evento`, `camara` y `tienda` — migración `b2c3d4e5f6a7`. Aplicada.
 
 ### Execute migration
 

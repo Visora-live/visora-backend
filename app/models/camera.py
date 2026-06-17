@@ -37,3 +37,4 @@ class Camara(Base):
 
     tienda: Mapped["Tienda"] = relationship("Tienda", back_populates="camaras")
     eventos: Mapped[list["Evento"]] = relationship("Evento", back_populates="camara")
+    alertas: Mapped[list["Alerta"]] = relationship("Alerta", back_populates="camara")

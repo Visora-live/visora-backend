@@ -30,3 +30,4 @@ class Tienda(Base):
     asignaciones_usuario: Mapped[list["TiendaUsuario"]] = relationship(
         "TiendaUsuario", back_populates="tienda"
     )
+    alertas: Mapped[list["Alerta"]] = relationship("Alerta", back_populates="tienda")
