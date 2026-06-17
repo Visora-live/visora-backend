@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -8,11 +8,12 @@ from app.db.base import Base
 
 class TiendaUsuario(Base):
     __tablename__ = "tienda_usuario"
+    __table_args__ = (Index("ix_tienda_usuario_usuario_id", "usuario_id"),)
 
     tienda_id: Mapped[int] = mapped_column(Integer, ForeignKey("tienda.id"), primary_key=True)
     usuario_id: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.id"), primary_key=True)
     estado: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="activo", server_default="activo"
+        String(20), nullable=False, default="activo", server_default=text("'activo'")
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()

@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, Index, Integer, String, func
+from sqlalchemy import Date, DateTime, Index, Integer, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -15,7 +15,7 @@ class Tienda(Base):
     direccion: Mapped[str | None] = mapped_column(String(200), nullable=True)
     ruc: Mapped[str | None] = mapped_column(String(20), unique=True, nullable=True)
     estado: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="activa", server_default="activa"
+        String(20), nullable=False, default="activa", server_default=text("'activa'")
     )
     licencia_inicio: Mapped[date | None] = mapped_column(Date, nullable=True)
     licencia_fin: Mapped[date | None] = mapped_column(Date, nullable=True)

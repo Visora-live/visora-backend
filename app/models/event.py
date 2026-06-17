@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, func
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -17,13 +17,13 @@ class Evento(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     tipo: Mapped[str] = mapped_column(
-        String(30), nullable=False, default="desconocido", server_default="desconocido"
+        String(30), nullable=False, default="desconocido", server_default=text("'desconocido'")
     )
     severidad: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="media", server_default="media"
+        String(20), nullable=False, default="media", server_default=text("'media'")
     )
     estado: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="abierto", server_default="abierto"
+        String(20), nullable=False, default="abierto", server_default=text("'abierto'")
     )
     fecha_hora: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()

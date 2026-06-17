@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, String, func
+from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -20,7 +20,7 @@ class Identificacion(Base):
     dni: Mapped[str | None] = mapped_column(String(20), nullable=True)
     confianza: Mapped[float | None] = mapped_column(Float, nullable=True)
     fuente: Mapped[str] = mapped_column(
-        String(50), nullable=False, default="manual", server_default="manual"
+        String(50), nullable=False, default="manual", server_default=text("'manual'")
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
