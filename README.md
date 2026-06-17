@@ -143,6 +143,61 @@ alembic current
 
 ---
 
+## Fase 13A — CRUD tiendas y cámaras
+
+> Frontend no modificado. Sin auth. Sin IA. Sin WebSocket. Sin AWS real.
+
+### Endpoints nuevos
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/api/stores` | Listar tiendas |
+| `GET` | `/api/stores/{id}` | Obtener tienda |
+| `POST` | `/api/stores` | Crear tienda |
+| `PATCH` | `/api/stores/{id}` | Actualizar tienda (parcial) |
+| `DELETE` | `/api/stores/{id}` | Borrado lógico (estado → inactiva) |
+| `GET` | `/api/cameras` | Listar cámaras (filtra por `tienda_id`) |
+| `GET` | `/api/cameras/{id}` | Obtener cámara |
+| `POST` | `/api/cameras` | Crear cámara |
+| `PATCH` | `/api/cameras/{id}` | Actualizar cámara (parcial) |
+| `DELETE` | `/api/cameras/{id}` | Borrado lógico (estado → inactiva) |
+
+### Ejemplo POST /api/stores
+
+```json
+{
+  "nombre": "Tienda Central Lima",
+  "direccion": "Av. Javier Prado 1234",
+  "ruc": "20123456789",
+  "estado": "activa"
+}
+```
+
+### Ejemplo POST /api/cameras
+
+```json
+{
+  "nombre": "Cámara Entrada",
+  "host": "192.168.1.100",
+  "puerto": 8080,
+  "tienda_id": 1,
+  "ubicacion": "Puerta principal"
+}
+```
+
+### Endpoints anteriores (siguen funcionando)
+
+- `GET /api/cameras/test-ip-webcam`
+- `GET /api/cameras/test-ip-webcam/snapshot`
+
+### Probar en Swagger
+
+```
+http://localhost:8000/api/docs
+```
+
+---
+
 ## Test endpoints
 
 ### GET /api/health

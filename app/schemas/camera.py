@@ -1,6 +1,8 @@
-from pydantic import BaseModel
+from datetime import datetime
 from enum import Enum
 from typing import Optional
+
+from pydantic import BaseModel, ConfigDict
 
 
 class CameraSourceType(str, Enum):
@@ -38,3 +40,39 @@ class CameraSnapshotTestResponse(BaseModel):
     status_code: Optional[int]
     content_type: Optional[str]
     message: str
+
+
+# ── CRUD schemas ────────────────────────────────────────────────────────────
+
+class CameraBase(BaseModel):
+    nombre: str
+    host: str
+    puerto: int = 8080
+    ubicacion: Optional[str] = None
+    estado: str = "offline"
+    source_type: str = "rtsp_h264"
+    protocolo: str = "rtsp"
+    tienda_id: int
+
+
+class CameraCreate(CameraBase):
+    pass
+
+
+class CameraUpdate(BaseModel):
+    nombre: Optional[str] = None
+    host: Optional[str] = None
+    puerto: Optional[int] = None
+    ubicacion: Optional[str] = None
+    estado: Optional[str] = None
+    source_type: Optional[str] = None
+    protocolo: Optional[str] = None
+    tienda_id: Optional[int] = None
+
+
+class CameraResponse(CameraBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
