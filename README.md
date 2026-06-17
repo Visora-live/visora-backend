@@ -305,6 +305,39 @@ Respuesta incluye `storage_path` relativo (e.g. `"evidences/a3f7b2...jpg"`).
 
 ---
 
+## Fase 13E — CRUD identificaciones (manual)
+
+> Frontend no modificado. Sin IA. Sin reconocimiento facial real. Sin embeddings. Sin comparación facial. Sin procesamiento de imágenes.
+>
+> Las identificaciones son registros manuales o placeholders operativos. La integración con modelos de reconocimiento facial se realizará en una fase posterior.
+>
+> DELETE es físico (no hay campo `estado` en `identificacion`).
+
+### Endpoints nuevos
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/api/identifications` | Listar identificaciones (filtra por `evidencia_id`, `fuente`) |
+| `GET` | `/api/identifications/{id}` | Obtener identificación |
+| `POST` | `/api/identifications` | Registrar identificación manualmente |
+| `PATCH` | `/api/identifications/{id}` | Actualizar identificación (parcial) |
+| `DELETE` | `/api/identifications/{id}` | Borrado físico del registro DB |
+
+### Ejemplo POST /api/identifications
+
+```json
+{
+  "evidencia_id": 1,
+  "nombre": "Juan",
+  "apellido": "Pérez",
+  "dni": "12345678",
+  "confianza": 0.95,
+  "fuente": "manual"
+}
+```
+
+---
+
 ### password_hash
 
 No se acepta ni se expone desde el cliente. El servicio asigna internamente `$pending$auth-not-configured` hasta que se implemente la fase de autenticación real.
