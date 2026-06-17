@@ -6,3 +6,4 @@ sqlalchemy==2.0.41
 psycopg[binary]==3.3.4
 alembic==1.14.1
 httpx==0.28.1
+python-multipart==0.0.20

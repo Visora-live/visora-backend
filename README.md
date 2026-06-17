@@ -254,6 +254,57 @@ alembic current
 
 ---
 
+## Fase 13D — CRUD evidencias + upload local
+
+> Frontend no modificado. Sin IA. Sin procesamiento de imágenes. Sin captura desde cámara. Sin AWS real.
+>
+> DELETE es físico (no hay campo `estado` en `evidencia`). El archivo en disco no se elimina en esta fase.
+>
+> `ai_processed` es solo lectura — lo gestiona el pipeline de IA, no el cliente.
+
+### Endpoints nuevos
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/api/evidences` | Listar evidencias (filtra por `evento_id`, `tipo`, `storage_provider`) |
+| `GET` | `/api/evidences/{id}` | Obtener evidencia |
+| `POST` | `/api/evidences` | Registrar metadata de evidencia existente |
+| `PATCH` | `/api/evidences/{id}` | Actualizar metadata (parcial) |
+| `DELETE` | `/api/evidences/{id}` | Borrado físico del registro DB |
+| `POST` | `/api/evidences/upload` | Subir archivo + registrar evidencia (multipart/form-data) |
+
+### Ejemplo POST /api/evidences
+
+```json
+{
+  "evento_id": 1,
+  "tipo": "snapshot",
+  "storage_provider": "local",
+  "storage_path": "evidences/abc123.jpg",
+  "filename": "abc123.jpg",
+  "content_type": "image/jpeg"
+}
+```
+
+### Ejemplo POST /api/evidences/upload (multipart/form-data)
+
+```
+evento_id: 1
+tipo: snapshot
+file: <archivo binario>
+```
+
+Respuesta incluye `storage_path` relativo (e.g. `"evidences/a3f7b2...jpg"`).
+
+### Archivos de storage
+
+- Base: `LOCAL_STORAGE_PATH` (definido en `.env`, e.g. `storage/`)
+- Subdirectorio de evidencias: `evidences/`
+- Nombre de archivo: UUID hex + extensión original (previene path traversal y colisiones)
+- La carpeta `storage/` está en `.gitignore`
+
+---
+
 ### password_hash
 
 No se acepta ni se expone desde el cliente. El servicio asigna internamente `$pending$auth-not-configured` hasta que se implemente la fase de autenticación real.
