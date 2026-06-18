@@ -3,7 +3,9 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.dependencies import require_admin
 from app.db.session import get_db
+from app.models.user import Usuario
 from app.schemas.alert import AlertCreate, AlertResponse, AlertUpdate
 from app.services import alert_service
 
@@ -38,15 +40,28 @@ def get_alert(alert_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/alerts", response_model=AlertResponse, status_code=201)
-def create_alert(payload: AlertCreate, db: Session = Depends(get_db)):
+def create_alert(
+    payload: AlertCreate,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
     return alert_service.create_alert(db, payload)
 
 
 @router.patch("/alerts/{alert_id}", response_model=AlertResponse)
-def update_alert(alert_id: int, payload: AlertUpdate, db: Session = Depends(get_db)):
+def update_alert(
+    alert_id: int,
+    payload: AlertUpdate,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
     return alert_service.update_alert(db, alert_id, payload)
 
 
 @router.delete("/alerts/{alert_id}", response_model=AlertResponse)
-def delete_alert(alert_id: int, db: Session = Depends(get_db)):
+def delete_alert(
+    alert_id: int,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
     return alert_service.delete_alert(db, alert_id)

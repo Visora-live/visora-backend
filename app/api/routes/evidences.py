@@ -3,7 +3,9 @@ from typing import Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
+from app.core.dependencies import require_admin
 from app.db.session import get_db
+from app.models.user import Usuario
 from app.schemas.evidence import EvidenceCreate, EvidenceResponse, EvidenceUpdate
 from app.services import evidence_service
 
@@ -26,7 +28,11 @@ def list_evidences(
 
 
 @router.post("/evidences", response_model=EvidenceResponse, status_code=201)
-def create_evidence(payload: EvidenceCreate, db: Session = Depends(get_db)):
+def create_evidence(
+    payload: EvidenceCreate,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
     return evidence_service.create_evidence(db, payload)
 
 
@@ -36,6 +42,7 @@ async def upload_evidence(
     tipo: str = Form("snapshot"),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
 ):
     return await evidence_service.create_evidence_from_upload(
         db=db, evento_id=evento_id, file=file, tipo=tipo,
@@ -55,10 +62,15 @@ def update_evidence(
     evidence_id: int,
     payload: EvidenceUpdate,
     db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
 ):
     return evidence_service.update_evidence(db, evidence_id, payload)
 
 
 @router.delete("/evidences/{evidence_id}", response_model=EvidenceResponse)
-def delete_evidence(evidence_id: int, db: Session = Depends(get_db)):
+def delete_evidence(
+    evidence_id: int,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
     return evidence_service.delete_evidence(db, evidence_id)

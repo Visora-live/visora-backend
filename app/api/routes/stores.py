@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.dependencies import require_admin
 from app.db.session import get_db
+from app.models.user import Usuario
 from app.schemas.store import StoreCreate, StoreResponse, StoreUpdate
 from app.services import store_service
 
@@ -26,7 +28,11 @@ def get_store(store_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/stores", response_model=StoreResponse, status_code=201)
-def create_store(payload: StoreCreate, db: Session = Depends(get_db)):
+def create_store(
+    payload: StoreCreate,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
     return store_service.create_store(db, payload)
 
 
@@ -35,10 +41,15 @@ def update_store(
     store_id: int,
     payload: StoreUpdate,
     db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
 ):
     return store_service.update_store(db, store_id, payload)
 
 
 @router.delete("/stores/{store_id}", response_model=StoreResponse)
-def delete_store(store_id: int, db: Session = Depends(get_db)):
+def delete_store(
+    store_id: int,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
     return store_service.delete_store(db, store_id)

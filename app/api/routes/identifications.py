@@ -3,7 +3,9 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.dependencies import require_admin
 from app.db.session import get_db
+from app.models.user import Usuario
 from app.schemas.identification import (
     IdentificationCreate,
     IdentificationResponse,
@@ -37,7 +39,11 @@ def get_identification(identification_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/identifications", response_model=IdentificationResponse, status_code=201)
-def create_identification(payload: IdentificationCreate, db: Session = Depends(get_db)):
+def create_identification(
+    payload: IdentificationCreate,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
     return identification_service.create_identification(db, payload)
 
 
@@ -46,10 +52,15 @@ def update_identification(
     identification_id: int,
     payload: IdentificationUpdate,
     db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
 ):
     return identification_service.update_identification(db, identification_id, payload)
 
 
 @router.delete("/identifications/{identification_id}", response_model=IdentificationResponse)
-def delete_identification(identification_id: int, db: Session = Depends(get_db)):
+def delete_identification(
+    identification_id: int,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
     return identification_service.delete_identification(db, identification_id)

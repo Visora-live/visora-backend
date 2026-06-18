@@ -3,7 +3,9 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.dependencies import require_admin
 from app.db.session import get_db
+from app.models.user import Usuario
 from app.schemas.event import EventCreate, EventResponse, EventUpdate
 from app.services import event_service
 
@@ -34,15 +36,28 @@ def get_event(event_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/events", response_model=EventResponse, status_code=201)
-def create_event(payload: EventCreate, db: Session = Depends(get_db)):
+def create_event(
+    payload: EventCreate,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
     return event_service.create_event(db, payload)
 
 
 @router.patch("/events/{event_id}", response_model=EventResponse)
-def update_event(event_id: int, payload: EventUpdate, db: Session = Depends(get_db)):
+def update_event(
+    event_id: int,
+    payload: EventUpdate,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
     return event_service.update_event(db, event_id, payload)
 
 
 @router.delete("/events/{event_id}", response_model=EventResponse)
-def delete_event(event_id: int, db: Session = Depends(get_db)):
+def delete_event(
+    event_id: int,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
     return event_service.delete_event(db, event_id)

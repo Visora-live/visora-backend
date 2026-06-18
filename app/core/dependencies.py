@@ -10,6 +10,8 @@ from app.models.user import Usuario
 # auto_error=False so we return 401 instead of FastAPI's default 403 for missing header.
 _bearer = HTTPBearer(auto_error=False)
 
+_ADMIN_ROLES = {"admin", "administrador", "administrator"}
+
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
@@ -38,3 +40,10 @@ def get_current_user(
     if user.estado != "activo":
         raise HTTPException(status_code=403, detail="User account is inactive")
     return user
+
+
+def require_admin(current_user: Usuario = Depends(get_current_user)) -> Usuario:
+    role_name = (current_user.rol.nombre.strip().lower() if current_user.rol else "")
+    if role_name not in _ADMIN_ROLES:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user

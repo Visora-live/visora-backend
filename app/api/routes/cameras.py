@@ -3,7 +3,9 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from app.core.dependencies import require_admin
 from app.db.session import get_db
+from app.models.user import Usuario
 from app.schemas.camera import (
     CameraConnectionResponse,
     CameraCreate,
@@ -49,7 +51,11 @@ def list_cameras(
 
 
 @router.post("/cameras", response_model=CameraResponse, status_code=201)
-def create_camera(payload: CameraCreate, db: Session = Depends(get_db)):
+def create_camera(
+    payload: CameraCreate,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
     return camera_crud_service.create_camera(db, payload)
 
 
@@ -66,10 +72,15 @@ def update_camera(
     camera_id: int,
     payload: CameraUpdate,
     db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
 ):
     return camera_crud_service.update_camera(db, camera_id, payload)
 
 
 @router.delete("/cameras/{camera_id}", response_model=CameraResponse)
-def delete_camera(camera_id: int, db: Session = Depends(get_db)):
+def delete_camera(
+    camera_id: int,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
     return camera_crud_service.delete_camera(db, camera_id)
