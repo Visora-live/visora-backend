@@ -3,6 +3,7 @@ from typing import Optional
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.security import hash_password
 from app.models.role import Rol
 from app.models.user import Usuario
 from app.schemas.user import UserCreate, UserUpdate
@@ -37,8 +38,8 @@ def create_user(db: Session, payload: UserCreate) -> Usuario:
             raise HTTPException(status_code=400, detail="Email already registered")
     if not db.get(Rol, payload.rol_id):
         raise HTTPException(status_code=404, detail="Role not found")
-    data = payload.model_dump()
-    data["password_hash"] = _PLACEHOLDER_HASH
+    data = payload.model_dump(exclude={"password"})
+    data["password_hash"] = hash_password(payload.password) if payload.password else _PLACEHOLDER_HASH
     user = Usuario(**data)
     db.add(user)
     db.commit()

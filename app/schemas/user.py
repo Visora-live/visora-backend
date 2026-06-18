@@ -12,7 +12,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    pass
+    password: Optional[str] = None  # if omitted, account cannot log in until password is set
 
 
 class UserUpdate(BaseModel):
