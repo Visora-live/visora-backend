@@ -9,7 +9,10 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "local"
     API_PREFIX: str = "/api"
 
-    CORS_ORIGINS: List[str] = ["http://localhost:4200"]
+    CORS_ORIGINS: List[str] = [
+        "http://localhost:4200",
+        "http://127.0.0.1:4200",
+    ]
 
     # Storage
     STORAGE_PROVIDER: str = "local"  # "local" | "s3"
