@@ -5,8 +5,11 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user, is_admin, require_admin
 from app.db.session import get_db
+from app.models.camera import Camara
+from app.models.store_user import TiendaUsuario
 from app.models.user import Usuario
 from app.schemas.camera import (
+    CameraConnectionDetailResponse,
     CameraConnectionResponse,
     CameraCreate,
     CameraResponse,
@@ -69,6 +72,28 @@ def get_camera(
     if not camera:
         raise HTTPException(status_code=404, detail="Camera not found")
     return camera
+
+
+@router.get("/cameras/{camera_id}/connection", response_model=CameraConnectionDetailResponse)
+def get_camera_connection(
+    camera_id: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    camera = camera_crud_service.get_camera(db, camera_id)
+    if not camera:
+        raise HTTPException(status_code=404, detail="Camera not found")
+    if not is_admin(current_user):
+        owned = (
+            db.query(TiendaUsuario.tienda_id)
+            .filter(TiendaUsuario.usuario_id == current_user.id)
+            .subquery()
+        )
+        if not db.query(Camara).filter(
+            Camara.id == camera_id, Camara.tienda_id.in_(owned)
+        ).first():
+            raise HTTPException(status_code=403, detail="Access denied")
+    return camera_service.get_camera_connection(camera)
 
 
 @router.patch("/cameras/{camera_id}", response_model=CameraResponse)

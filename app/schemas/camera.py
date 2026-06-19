@@ -38,32 +38,34 @@ class CameraResponse(CameraBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-# ── IP Webcam test schemas (unchanged) ──────────────────────────────────────
-
-class CameraConnectionRequest(BaseModel):
-    host: str
-    port: int = 8080
-    protocol: str = "http"
-    source_type: str = "rtsp_h264"
-    label: Optional[str] = None
-
+# ── IP Webcam connection schemas ─────────────────────────────────────────────
 
 class CameraConnectionResponse(BaseModel):
-    camera_type: str
-    connection_mode: str
     input: dict
-    base_url: str
-    rtsp_h264_url: str
     snapshot_url: str
-    mjpeg_url: str
+    stream_url: str
+    reachable: bool
+    status_code: Optional[int] = None
+    content_type: Optional[str] = None
     message: str
 
 
 class CameraSnapshotTestResponse(BaseModel):
-    camera_type: str
-    connection_mode: str
     input: dict
     snapshot_url: str
+    reachable: bool
+    status_code: Optional[int] = None
+    content_type: Optional[str] = None
+    message: str
+
+
+class CameraConnectionDetailResponse(BaseModel):
+    camera_id: int
+    nombre_cam: str
+    direccion_ip: str
+    puerto: int
+    snapshot_url: str
+    stream_url: str
     reachable: bool
     status_code: Optional[int] = None
     content_type: Optional[str] = None

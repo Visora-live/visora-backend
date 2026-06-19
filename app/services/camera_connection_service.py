@@ -1,76 +1,110 @@
 import httpx
 
 from app.adapters.ip_webcam_adapter import IPWebcamAdapter
-from app.core.config import settings
 
 
 class CameraConnectionService:
     """
-    Prepares connection data and tests connectivity for IP Webcam cameras.
-    No OpenCV, no AI models, no stream consumption.
+    Tests HTTP connectivity to IP Webcam cameras (Android app).
+    No OpenCV, no AI, no stream processing — only lightweight HTTP HEAD/GET to /shot.jpg.
     """
 
     def get_ip_webcam_connection_data(self, host: str, port: int = 8080) -> dict:
         adapter = IPWebcamAdapter(host=host, port=port)
-
-        return {
-            "camera_type": "ip_webcam_android",
-            "connection_mode": settings.CAMERA_CONNECTION_MODE,
+        snapshot_url = adapter.get_snapshot_url()
+        stream_url = adapter.get_mjpeg_url()
+        base = {
             "input": {"host": host, "port": port},
-            "base_url": adapter.get_base_url(),
-            "rtsp_h264_url": adapter.get_rtsp_h264_url(),
-            "snapshot_url": adapter.get_snapshot_url(),
-            "mjpeg_url": adapter.get_mjpeg_url(),
-            "message": (
-                "IP Webcam URLs generated successfully. "
-                "Real stream connection is not enabled yet."
-            ),
+            "snapshot_url": snapshot_url,
+            "stream_url": stream_url,
         }
+        try:
+            resp = httpx.get(snapshot_url, timeout=5.0)
+            reachable = resp.status_code == 200
+            return {
+                **base,
+                "reachable": reachable,
+                "status_code": resp.status_code,
+                "content_type": resp.headers.get("content-type"),
+                "message": (
+                    "IP Webcam alcanzable"
+                    if reachable
+                    else f"IP Webcam respondió con código {resp.status_code}"
+                ),
+            }
+        except httpx.TimeoutException:
+            return {**base, "reachable": False, "status_code": None, "content_type": None,
+                    "message": "Tiempo de espera agotado al conectar con IP Webcam"}
+        except httpx.ConnectError:
+            return {**base, "reachable": False, "status_code": None, "content_type": None,
+                    "message": "No se pudo conectar a IP Webcam en el host y puerto indicados"}
+        except Exception:
+            return {**base, "reachable": False, "status_code": None, "content_type": None,
+                    "message": "Error inesperado al probar IP Webcam"}
 
     def test_ip_webcam_snapshot(self, host: str, port: int = 8080) -> dict:
         adapter = IPWebcamAdapter(host=host, port=port)
         snapshot_url = adapter.get_snapshot_url()
         base = {
-            "camera_type": "ip_webcam_android",
-            "connection_mode": "local_snapshot",
             "input": {"host": host, "port": port},
             "snapshot_url": snapshot_url,
         }
         try:
-            response = httpx.get(snapshot_url, timeout=5.0)
-            reachable = response.status_code == 200
+            resp = httpx.get(snapshot_url, timeout=5.0)
+            reachable = resp.status_code == 200
             return {
                 **base,
                 "reachable": reachable,
-                "status_code": response.status_code,
-                "content_type": response.headers.get("content-type"),
+                "status_code": resp.status_code,
+                "content_type": resp.headers.get("content-type"),
                 "message": (
-                    "IP Webcam snapshot is reachable"
+                    "Snapshot disponible"
                     if reachable
-                    else f"IP Webcam responded with status {response.status_code}"
+                    else f"Snapshot respondió con código {resp.status_code}"
                 ),
             }
         except httpx.TimeoutException:
-            return {
-                **base,
-                "reachable": False,
-                "status_code": None,
-                "content_type": None,
-                "message": "IP Webcam snapshot request timed out",
-            }
+            return {**base, "reachable": False, "status_code": None, "content_type": None,
+                    "message": "Tiempo de espera agotado al obtener snapshot"}
         except httpx.ConnectError:
-            return {
-                **base,
-                "reachable": False,
-                "status_code": None,
-                "content_type": None,
-                "message": "IP Webcam is not reachable at the given host and port",
-            }
+            return {**base, "reachable": False, "status_code": None, "content_type": None,
+                    "message": "No se pudo conectar a la cámara"}
         except Exception:
+            return {**base, "reachable": False, "status_code": None, "content_type": None,
+                    "message": "Error al obtener snapshot"}
+
+    def get_camera_connection(self, camera) -> dict:
+        adapter = IPWebcamAdapter(host=camera.direccion_ip, port=camera.puerto)
+        snapshot_url = adapter.get_snapshot_url()
+        stream_url = adapter.get_mjpeg_url()
+        base = {
+            "camera_id": camera.id,
+            "nombre_cam": camera.nombre_cam,
+            "direccion_ip": camera.direccion_ip,
+            "puerto": camera.puerto,
+            "snapshot_url": snapshot_url,
+            "stream_url": stream_url,
+        }
+        try:
+            resp = httpx.get(snapshot_url, timeout=5.0)
+            reachable = resp.status_code == 200
             return {
                 **base,
-                "reachable": False,
-                "status_code": None,
-                "content_type": None,
-                "message": "Snapshot request failed",
+                "reachable": reachable,
+                "status_code": resp.status_code,
+                "content_type": resp.headers.get("content-type"),
+                "message": (
+                    "Cámara alcanzable"
+                    if reachable
+                    else f"Cámara respondió con código {resp.status_code}"
+                ),
             }
+        except httpx.TimeoutException:
+            return {**base, "reachable": False, "status_code": None, "content_type": None,
+                    "message": "Tiempo de espera agotado"}
+        except httpx.ConnectError:
+            return {**base, "reachable": False, "status_code": None, "content_type": None,
+                    "message": "No se pudo conectar a la cámara"}
+        except Exception:
+            return {**base, "reachable": False, "status_code": None, "content_type": None,
+                    "message": "Error al probar conexión con la cámara"}
