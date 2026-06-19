@@ -48,8 +48,18 @@ def get_event(
 def create_event(
     payload: EventCreate,
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(get_current_user),
 ):
+    if not is_admin(current_user):
+        owned = (
+            db.query(TiendaUsuario.tienda_id)
+            .filter(TiendaUsuario.usuario_id == current_user.id)
+            .subquery()
+        )
+        if not db.query(Camara).filter(
+            Camara.id == payload.camara_id, Camara.tienda_id.in_(owned)
+        ).first():
+            raise HTTPException(status_code=403, detail="Access denied")
     return event_service.create_event(db, payload)
 
 

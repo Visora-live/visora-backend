@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user, is_admin, require_admin
 from app.db.session import get_db
+from app.models.camera import Camara
+from app.models.store_user import TiendaUsuario
 from app.models.user import Usuario
 from app.schemas.alert import AlertCreate, AlertResponse, AlertUpdate
 from app.services import alert_service
@@ -50,8 +52,20 @@ def get_alert(
 def create_alert(
     payload: AlertCreate,
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(get_current_user),
 ):
+    if not is_admin(current_user):
+        if payload.camara_id is None:
+            raise HTTPException(status_code=422, detail="camara_id required for propietario users")
+        owned = (
+            db.query(TiendaUsuario.tienda_id)
+            .filter(TiendaUsuario.usuario_id == current_user.id)
+            .subquery()
+        )
+        if not db.query(Camara).filter(
+            Camara.id == payload.camara_id, Camara.tienda_id.in_(owned)
+        ).first():
+            raise HTTPException(status_code=403, detail="Access denied")
     return alert_service.create_alert(db, payload)
 
 
