@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.models.evidence import Evidencia
+from app.models.event_image import EventoImagen
 from app.models.identification import Identificacion
 from app.schemas.identification import IdentificationCreate, IdentificationUpdate
 
@@ -12,12 +12,12 @@ def list_identifications(
     db: Session,
     skip: int = 0,
     limit: int = 50,
-    evidencia_id: Optional[int] = None,
+    evento_imagen_id: Optional[int] = None,
     fuente: Optional[str] = None,
 ) -> list[Identificacion]:
     query = db.query(Identificacion)
-    if evidencia_id is not None:
-        query = query.filter(Identificacion.evidencia_id == evidencia_id)
+    if evento_imagen_id is not None:
+        query = query.filter(Identificacion.evento_imagen_id == evento_imagen_id)
     if fuente is not None:
         query = query.filter(Identificacion.fuente == fuente)
     return query.offset(skip).limit(limit).all()
@@ -28,8 +28,8 @@ def get_identification(db: Session, identification_id: int) -> Identificacion | 
 
 
 def create_identification(db: Session, payload: IdentificationCreate) -> Identificacion:
-    if not db.get(Evidencia, payload.evidencia_id):
-        raise HTTPException(status_code=404, detail="Evidence not found")
+    if not db.get(EventoImagen, payload.evento_imagen_id):
+        raise HTTPException(status_code=404, detail="Event image not found")
     identification = Identificacion(**payload.model_dump())
     db.add(identification)
     db.commit()
@@ -52,7 +52,6 @@ def update_identification(
 
 
 def delete_identification(db: Session, identification_id: int) -> Identificacion:
-    """Physical delete — Identificacion has no estado field."""
     identification = db.get(Identificacion, identification_id)
     if not identification:
         raise HTTPException(status_code=404, detail="Identification not found")

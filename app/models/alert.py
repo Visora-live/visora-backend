@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, func, text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -30,6 +30,9 @@ class Alerta(Base):
     )
     estado: Mapped[str] = mapped_column(
         String(20), nullable=False, default="abierta", server_default=text("'abierta'")
+    )
+    leida: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("false")
     )
     evento_id: Mapped[Optional[int]] = mapped_column(
         Integer, ForeignKey("evento.id"), nullable=True

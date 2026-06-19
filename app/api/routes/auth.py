@@ -22,7 +22,7 @@ def get_me(current_user: Usuario = Depends(get_current_user)):
         id=current_user.id,
         username=current_user.username,
         email=current_user.email,
-        estado=current_user.estado,
+        estado_acceso=current_user.estado_acceso,
         rol_id=current_user.rol_id,
-        rol_nombre=current_user.rol.nombre if current_user.rol else None,
+        rol_tipo=current_user.rol.tipo if current_user.rol else None,
     )

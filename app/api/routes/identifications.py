@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import require_admin
+from app.core.dependencies import get_current_user, require_admin
 from app.db.session import get_db
 from app.models.user import Usuario
 from app.schemas.identification import (
@@ -20,18 +20,23 @@ router = APIRouter()
 def list_identifications(
     skip: int = 0,
     limit: int = 50,
-    evidencia_id: Optional[int] = None,
+    evento_imagen_id: Optional[int] = None,
     fuente: Optional[str] = None,
     db: Session = Depends(get_db),
+    _: Usuario = Depends(get_current_user),
 ):
     return identification_service.list_identifications(
         db, skip=skip, limit=limit,
-        evidencia_id=evidencia_id, fuente=fuente,
+        evento_imagen_id=evento_imagen_id, fuente=fuente,
     )
 
 
 @router.get("/identifications/{identification_id}", response_model=IdentificationResponse)
-def get_identification(identification_id: int, db: Session = Depends(get_db)):
+def get_identification(
+    identification_id: int,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(get_current_user),
+):
     identification = identification_service.get_identification(db, identification_id)
     if not identification:
         raise HTTPException(status_code=404, detail="Identification not found")

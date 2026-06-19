@@ -7,18 +7,18 @@ from pydantic import BaseModel, ConfigDict
 class UserBase(BaseModel):
     username: str
     email: Optional[str] = None
-    estado: str = "activo"
+    estado_acceso: bool = True
     rol_id: int
 
 
 class UserCreate(UserBase):
-    password: Optional[str] = None  # if omitted, account cannot log in until password is set
+    password: Optional[str] = None
 
 
 class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[str] = None
-    estado: Optional[str] = None
+    estado_acceso: Optional[bool] = None
     rol_id: Optional[int] = None
 
 
@@ -26,7 +26,7 @@ class UserResponse(BaseModel):
     id: int
     username: str
     email: Optional[str] = None
-    estado: str
+    estado_acceso: bool
     rol_id: int
     created_at: datetime
     updated_at: datetime

@@ -8,6 +8,7 @@ from app.models.alert import Alerta
 from app.models.camera import Camara
 from app.models.event import Evento
 from app.models.store import Tienda
+from app.models.store_user import TiendaUsuario
 from app.schemas.alert import AlertCreate, AlertUpdate
 
 
@@ -33,6 +34,7 @@ def list_alerts(
     tienda_id: Optional[int] = None,
     camara_id: Optional[int] = None,
     evento_id: Optional[int] = None,
+    usuario_id: Optional[int] = None,
 ) -> list[Alerta]:
     query = db.query(Alerta)
     if estado is not None:
@@ -43,6 +45,13 @@ def list_alerts(
         query = query.filter(Alerta.tipo == tipo)
     if tienda_id is not None:
         query = query.filter(Alerta.tienda_id == tienda_id)
+    elif usuario_id is not None:
+        assigned = (
+            db.query(TiendaUsuario.tienda_id)
+            .filter(TiendaUsuario.usuario_id == usuario_id)
+            .subquery()
+        )
+        query = query.filter(Alerta.tienda_id.in_(assigned))
     if camara_id is not None:
         query = query.filter(Alerta.camara_id == camara_id)
     if evento_id is not None:

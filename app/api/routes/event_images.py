@@ -1,0 +1,77 @@
+from typing import Optional
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from sqlalchemy.orm import Session
+
+from app.core.dependencies import get_current_user, require_admin
+from app.db.session import get_db
+from app.models.user import Usuario
+from app.schemas.event_image import EventImageCreate, EventImageResponse, EventImageUpdate
+from app.services import event_image_service
+
+router = APIRouter()
+
+
+@router.get("/event-images", response_model=list[EventImageResponse])
+def list_event_images(
+    skip: int = 0,
+    limit: int = 50,
+    evento_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(get_current_user),
+):
+    return event_image_service.list_event_images(db, skip=skip, limit=limit, evento_id=evento_id)
+
+
+@router.post("/event-images", response_model=EventImageResponse, status_code=201)
+def create_event_image(
+    payload: EventImageCreate,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
+    return event_image_service.create_event_image(db, payload)
+
+
+@router.post("/event-images/upload", response_model=EventImageResponse, status_code=201)
+async def upload_event_image(
+    evento_id: int = Form(...),
+    es_frame_representativo: bool = Form(False),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
+    return await event_image_service.upload_event_image(
+        db=db, evento_id=evento_id, file=file,
+        es_frame_representativo=es_frame_representativo,
+    )
+
+
+@router.get("/event-images/{event_image_id}", response_model=EventImageResponse)
+def get_event_image(
+    event_image_id: int,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(get_current_user),
+):
+    ev_img = event_image_service.get_event_image(db, event_image_id)
+    if not ev_img:
+        raise HTTPException(status_code=404, detail="Event image not found")
+    return ev_img
+
+
+@router.patch("/event-images/{event_image_id}", response_model=EventImageResponse)
+def update_event_image(
+    event_image_id: int,
+    payload: EventImageUpdate,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
+    return event_image_service.update_event_image(db, event_image_id, payload)
+
+
+@router.delete("/event-images/{event_image_id}", response_model=EventImageResponse)
+def delete_event_image(
+    event_image_id: int,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
+    return event_image_service.delete_event_image(db, event_image_id)

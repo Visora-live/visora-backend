@@ -16,13 +16,13 @@ def list_users(
     skip: int = 0,
     limit: int = 50,
     rol_id: Optional[int] = None,
-    estado: Optional[str] = None,
+    estado_acceso: Optional[bool] = None,
 ) -> list[Usuario]:
     query = db.query(Usuario)
     if rol_id is not None:
         query = query.filter(Usuario.rol_id == rol_id)
-    if estado is not None:
-        query = query.filter(Usuario.estado == estado)
+    if estado_acceso is not None:
+        query = query.filter(Usuario.estado_acceso == estado_acceso)
     return query.offset(skip).limit(limit).all()
 
 
@@ -39,7 +39,7 @@ def create_user(db: Session, payload: UserCreate) -> Usuario:
     if not db.get(Rol, payload.rol_id):
         raise HTTPException(status_code=404, detail="Role not found")
     data = payload.model_dump(exclude={"password"})
-    data["password_hash"] = hash_password(payload.password) if payload.password else _PLACEHOLDER_HASH
+    data["contrasena"] = hash_password(payload.password) if payload.password else _PLACEHOLDER_HASH
     user = Usuario(**data)
     db.add(user)
     db.commit()
@@ -82,7 +82,7 @@ def delete_user(db: Session, user_id: int) -> Usuario:
     user = db.get(Usuario, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    user.estado = "inactivo"
+    user.estado_acceso = False
     db.commit()
     db.refresh(user)
     return user

@@ -17,14 +17,18 @@ def list_users(
     skip: int = 0,
     limit: int = 50,
     rol_id: Optional[int] = None,
-    estado: Optional[str] = None,
     db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
 ):
-    return user_service.list_users(db, skip=skip, limit=limit, rol_id=rol_id, estado=estado)
+    return user_service.list_users(db, skip=skip, limit=limit, rol_id=rol_id)
 
 
 @router.get("/users/{user_id}", response_model=UserResponse)
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+):
     user = user_service.get_user(db, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

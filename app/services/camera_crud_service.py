@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.models.camera import Camara
 from app.models.store import Tienda
+from app.models.store_user import TiendaUsuario
 from app.schemas.camera import CameraCreate, CameraUpdate
 
 
@@ -13,10 +14,18 @@ def list_cameras(
     skip: int = 0,
     limit: int = 50,
     tienda_id: Optional[int] = None,
+    usuario_id: Optional[int] = None,
 ) -> list[Camara]:
     query = db.query(Camara)
     if tienda_id is not None:
         query = query.filter(Camara.tienda_id == tienda_id)
+    elif usuario_id is not None:
+        assigned = (
+            db.query(TiendaUsuario.tienda_id)
+            .filter(TiendaUsuario.usuario_id == usuario_id)
+            .subquery()
+        )
+        query = query.filter(Camara.tienda_id.in_(assigned))
     return query.offset(skip).limit(limit).all()
 
 
@@ -53,7 +62,7 @@ def delete_camera(db: Session, camera_id: int) -> Camara:
     camera = db.get(Camara, camera_id)
     if not camera:
         raise HTTPException(status_code=404, detail="Camera not found")
-    camera.estado = "inactiva"
+    camera.estado = False
     db.commit()
     db.refresh(camera)
     return camera

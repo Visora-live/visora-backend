@@ -17,6 +17,6 @@ class CurrentUserResponse(BaseModel):
     id: int
     username: str
     email: Optional[str] = None
-    estado: str
+    estado_acceso: bool
     rol_id: int
-    rol_nombre: Optional[str] = None
+    rol_tipo: Optional[str] = None

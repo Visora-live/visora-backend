@@ -10,6 +10,7 @@ class AlertBase(BaseModel):
     tipo: str = "manual"
     severidad: str = "media"
     estado: str = "abierta"
+    leida: bool = False
     evento_id: Optional[int] = None
     camara_id: Optional[int] = None
     tienda_id: Optional[int] = None
@@ -26,6 +27,7 @@ class AlertUpdate(BaseModel):
     tipo: Optional[str] = None
     severidad: Optional[str] = None
     estado: Optional[str] = None
+    leida: Optional[bool] = None
     evento_id: Optional[int] = None
     camara_id: Optional[int] = None
     tienda_id: Optional[int] = None

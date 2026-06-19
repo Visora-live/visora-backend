@@ -9,16 +9,20 @@ from app.db.base import Base
 class Identificacion(Base):
     __tablename__ = "identificacion"
     __table_args__ = (
-        Index("ix_identificacion_evidencia_id", "evidencia_id"),
+        Index("ix_identificacion_evento_imagen_id", "evento_imagen_id"),
         Index("ix_identificacion_dni", "dni"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    evidencia_id: Mapped[int] = mapped_column(Integer, ForeignKey("evidencia.id"), nullable=False)
+    evento_imagen_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("evento_imagen.id"), nullable=False
+    )
     nombre: Mapped[str | None] = mapped_column(String(100), nullable=True)
     apellido: Mapped[str | None] = mapped_column(String(100), nullable=True)
     dni: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    confianza: Mapped[float | None] = mapped_column(Float, nullable=True)
+    confianza_identificacion: Mapped[float] = mapped_column(
+        Float, nullable=False, default=0.0, server_default=text("0")
+    )
     fuente: Mapped[str] = mapped_column(
         String(50), nullable=False, default="manual", server_default=text("'manual'")
     )
@@ -26,4 +30,6 @@ class Identificacion(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
 
-    evidencia: Mapped["Evidencia"] = relationship("Evidencia", back_populates="identificaciones")
+    evento_imagen: Mapped["EventoImagen"] = relationship(
+        "EventoImagen", back_populates="identificaciones"
+    )

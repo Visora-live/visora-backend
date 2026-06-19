@@ -12,12 +12,11 @@ def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
-def verify_password(plain_password: str, password_hash: str) -> bool:
-    # Reject placeholder hashes set before auth was configured.
-    if password_hash.startswith(_PLACEHOLDER_PREFIX):
+def verify_password(plain_password: str, contrasena_hash: str) -> bool:
+    if contrasena_hash.startswith(_PLACEHOLDER_PREFIX):
         return False
     try:
-        return bcrypt.checkpw(plain_password.encode("utf-8"), password_hash.encode("utf-8"))
+        return bcrypt.checkpw(plain_password.encode("utf-8"), contrasena_hash.encode("utf-8"))
     except Exception:
         return False
 

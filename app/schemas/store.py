@@ -8,7 +8,7 @@ class StoreBase(BaseModel):
     nombre: str
     direccion: Optional[str] = None
     ruc: Optional[str] = None
-    estado: str = "activa"
+    estado_tienda: bool = True
     licencia_inicio: Optional[date] = None
     licencia_fin: Optional[date] = None
 
@@ -21,7 +21,7 @@ class StoreUpdate(BaseModel):
     nombre: Optional[str] = None
     direccion: Optional[str] = None
     ruc: Optional[str] = None
-    estado: Optional[str] = None
+    estado_tienda: Optional[bool] = None
     licencia_inicio: Optional[date] = None
     licencia_fin: Optional[date] = None
 

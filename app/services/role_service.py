@@ -15,8 +15,8 @@ def get_role(db: Session, role_id: int) -> Rol | None:
 
 
 def create_role(db: Session, payload: RoleCreate) -> Rol:
-    if db.query(Rol).filter(Rol.nombre == payload.nombre).first():
-        raise HTTPException(status_code=400, detail="Role name already exists")
+    if db.query(Rol).filter(Rol.tipo == payload.tipo).first():
+        raise HTTPException(status_code=400, detail="Role tipo already exists")
     role = Rol(**payload.model_dump())
     db.add(role)
     db.commit()
@@ -29,14 +29,14 @@ def update_role(db: Session, role_id: int, payload: RoleUpdate) -> Rol:
     if not role:
         raise HTTPException(status_code=404, detail="Role not found")
     data = payload.model_dump(exclude_unset=True)
-    if "nombre" in data:
+    if "tipo" in data:
         conflict = (
             db.query(Rol)
-            .filter(Rol.nombre == data["nombre"], Rol.id != role_id)
+            .filter(Rol.tipo == data["tipo"], Rol.id != role_id)
             .first()
         )
         if conflict:
-            raise HTTPException(status_code=400, detail="Role name already exists")
+            raise HTTPException(status_code=400, detail="Role tipo already exists")
     for key, value in data.items():
         setattr(role, key, value)
     db.commit()
@@ -55,7 +55,7 @@ def delete_role(db: Session, role_id: int) -> Rol:
             detail=f"Role is in use by {user_count} user(s)",
         )
     db.delete(role)
-    db.flush()       # ejecuta DELETE SQL dentro de la transacción abierta
-    db.expunge(role) # desasocia el objeto ANTES del commit, preservando __dict__
+    db.flush()
+    db.expunge(role)
     db.commit()
-    return role      # detached con valores intactos — Pydantic puede serializar
+    return role

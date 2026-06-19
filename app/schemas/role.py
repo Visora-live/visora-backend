@@ -4,8 +4,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class RoleBase(BaseModel):
-    nombre: str
-    descripcion: Optional[str] = None
+    tipo: str
 
 
 class RoleCreate(RoleBase):
@@ -13,8 +12,7 @@ class RoleCreate(RoleBase):
 
 
 class RoleUpdate(BaseModel):
-    nombre: Optional[str] = None
-    descripcion: Optional[str] = None
+    tipo: Optional[str] = None
 
 
 class RoleResponse(RoleBase):

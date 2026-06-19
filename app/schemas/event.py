@@ -5,12 +5,12 @@ from pydantic import BaseModel, ConfigDict
 
 
 class EventBase(BaseModel):
-    tipo: str = "desconocido"
-    severidad: str = "media"
     estado: str = "abierto"
     fecha_hora: Optional[datetime] = None
     comentario: Optional[str] = None
     camara_id: int
+    tipo: str = "desconocido"
+    severidad: str = "media"
 
 
 class EventCreate(EventBase):
@@ -18,17 +18,17 @@ class EventCreate(EventBase):
 
 
 class EventUpdate(BaseModel):
-    tipo: Optional[str] = None
-    severidad: Optional[str] = None
     estado: Optional[str] = None
     fecha_hora: Optional[datetime] = None
     comentario: Optional[str] = None
     camara_id: Optional[int] = None
+    tipo: Optional[str] = None
+    severidad: Optional[str] = None
 
 
 class EventResponse(EventBase):
     id: int
-    fecha_hora: datetime  # always set by DB default
+    fecha_hora: datetime
     created_at: datetime
     updated_at: datetime
 

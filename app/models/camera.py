@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, func, text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -14,12 +14,12 @@ class Camara(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    nombre: Mapped[str] = mapped_column(String(100), nullable=False)
-    host: Mapped[str] = mapped_column(String(100), nullable=False)
+    nombre_cam: Mapped[str] = mapped_column(String(100), nullable=False)
+    direccion_ip: Mapped[str] = mapped_column(String(255), nullable=False)
     puerto: Mapped[int] = mapped_column(Integer, nullable=False, default=8080, server_default="8080")
-    ubicacion: Mapped[str | None] = mapped_column(String(200), nullable=True)
-    estado: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="offline", server_default=text("'offline'")
+    ubicacion_camara: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    estado: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("false")
     )
     source_type: Mapped[str] = mapped_column(
         String(30), nullable=False, default="rtsp_h264", server_default=text("'rtsp_h264'")

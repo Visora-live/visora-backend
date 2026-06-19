@@ -14,11 +14,10 @@ def login(db: Session, username_or_email: str, password: str) -> str:
         .first()
     )
 
-    # Return 401 for both "not found" and "wrong password" — no user enumeration.
-    if user is None or not verify_password(password, user.password_hash):
+    if user is None or not verify_password(password, user.contrasena):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    if user.estado != "activo":
+    if not user.estado_acceso:
         raise HTTPException(status_code=403, detail="User account is inactive")
 
     return create_access_token({"sub": str(user.id), "username": user.username})

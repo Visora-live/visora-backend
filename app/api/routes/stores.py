@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import require_admin
+from app.core.dependencies import get_current_user, is_admin, require_admin
 from app.db.session import get_db
 from app.models.user import Usuario
 from app.schemas.store import StoreCreate, StoreResponse, StoreUpdate
@@ -15,12 +15,18 @@ def list_stores(
     skip: int = 0,
     limit: int = 50,
     db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
 ):
-    return store_service.list_stores(db, skip=skip, limit=limit)
+    usuario_id = None if is_admin(current_user) else current_user.id
+    return store_service.list_stores(db, skip=skip, limit=limit, usuario_id=usuario_id)
 
 
 @router.get("/stores/{store_id}", response_model=StoreResponse)
-def get_store(store_id: int, db: Session = Depends(get_db)):
+def get_store(
+    store_id: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
     store = store_service.get_store(db, store_id)
     if not store:
         raise HTTPException(status_code=404, detail="Store not found")

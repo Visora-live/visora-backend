@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.models.camera import Camara
 from app.models.event import Evento
+from app.models.store_user import TiendaUsuario
 from app.schemas.event import EventCreate, EventUpdate
 
 
@@ -15,10 +16,20 @@ def list_events(
     camara_id: Optional[int] = None,
     estado: Optional[str] = None,
     severidad: Optional[str] = None,
+    usuario_id: Optional[int] = None,
 ) -> list[Evento]:
     query = db.query(Evento)
     if camara_id is not None:
         query = query.filter(Evento.camara_id == camara_id)
+    elif usuario_id is not None:
+        assigned_tiendas = (
+            db.query(TiendaUsuario.tienda_id)
+            .filter(TiendaUsuario.usuario_id == usuario_id)
+            .subquery()
+        )
+        query = query.join(Camara, Evento.camara_id == Camara.id).filter(
+            Camara.tienda_id.in_(assigned_tiendas)
+        )
     if estado is not None:
         query = query.filter(Evento.estado == estado)
     if severidad is not None:
@@ -33,7 +44,6 @@ def get_event(db: Session, event_id: int) -> Evento | None:
 def create_event(db: Session, payload: EventCreate) -> Evento:
     if not db.get(Camara, payload.camara_id):
         raise HTTPException(status_code=404, detail="Camera not found")
-    # exclude_none so fecha_hora omission lets DB use server_default
     data = payload.model_dump(exclude_none=True)
     event = Evento(**data)
     db.add(event)

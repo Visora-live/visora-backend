@@ -11,17 +11,10 @@ class Evento(Base):
     __table_args__ = (
         Index("ix_evento_camara_id", "camara_id"),
         Index("ix_evento_estado", "estado"),
-        Index("ix_evento_severidad", "severidad"),
         Index("ix_evento_fecha_hora", "fecha_hora"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    tipo: Mapped[str] = mapped_column(
-        String(30), nullable=False, default="desconocido", server_default=text("'desconocido'")
-    )
-    severidad: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="media", server_default=text("'media'")
-    )
     estado: Mapped[str] = mapped_column(
         String(20), nullable=False, default="abierto", server_default=text("'abierto'")
     )
@@ -30,6 +23,12 @@ class Evento(Base):
     )
     comentario: Mapped[str | None] = mapped_column(Text, nullable=True)
     camara_id: Mapped[int] = mapped_column(Integer, ForeignKey("camara.id"), nullable=False)
+    tipo: Mapped[str] = mapped_column(
+        String(30), nullable=False, default="desconocido", server_default=text("'desconocido'")
+    )
+    severidad: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="media", server_default=text("'media'")
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -38,5 +37,7 @@ class Evento(Base):
     )
 
     camara: Mapped["Camara"] = relationship("Camara", back_populates="eventos")
-    evidencias: Mapped[list["Evidencia"]] = relationship("Evidencia", back_populates="evento")
+    evento_imagenes: Mapped[list["EventoImagen"]] = relationship(
+        "EventoImagen", back_populates="evento"
+    )
     alertas: Mapped[list["Alerta"]] = relationship("Alerta", back_populates="evento")

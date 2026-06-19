@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, Index, Integer, String, func, text
+from sqlalchemy import Boolean, Date, DateTime, Index, Integer, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -8,14 +8,14 @@ from app.db.base import Base
 
 class Tienda(Base):
     __tablename__ = "tienda"
-    __table_args__ = (Index("ix_tienda_estado", "estado"),)
+    __table_args__ = (Index("ix_tienda_estado_tienda", "estado_tienda"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     nombre: Mapped[str] = mapped_column(String(100), nullable=False)
     direccion: Mapped[str | None] = mapped_column(String(200), nullable=True)
     ruc: Mapped[str | None] = mapped_column(String(20), unique=True, nullable=True)
-    estado: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="activa", server_default=text("'activa'")
+    estado_tienda: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=text("true")
     )
     licencia_inicio: Mapped[date | None] = mapped_column(Date, nullable=True)
     licencia_fin: Mapped[date | None] = mapped_column(Date, nullable=True)

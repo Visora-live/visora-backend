@@ -5,11 +5,11 @@ from pydantic import BaseModel, ConfigDict
 
 
 class IdentificationBase(BaseModel):
-    evidencia_id: int
+    evento_imagen_id: int
     nombre: Optional[str] = None
     apellido: Optional[str] = None
     dni: Optional[str] = None
-    confianza: Optional[float] = None
+    confianza_identificacion: float = 0.0
     fuente: str = "manual"
 
 
@@ -21,7 +21,7 @@ class IdentificationUpdate(BaseModel):
     nombre: Optional[str] = None
     apellido: Optional[str] = None
     dni: Optional[str] = None
-    confianza: Optional[float] = None
+    confianza_identificacion: Optional[float] = None
     fuente: Optional[str] = None
 
 

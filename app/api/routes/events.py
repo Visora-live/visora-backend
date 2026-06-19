@@ -3,8 +3,10 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import require_admin
+from app.core.dependencies import get_current_user, is_admin, require_admin
 from app.db.session import get_db
+from app.models.camera import Camara
+from app.models.store_user import TiendaUsuario
 from app.models.user import Usuario
 from app.schemas.event import EventCreate, EventResponse, EventUpdate
 from app.services import event_service
@@ -20,15 +22,22 @@ def list_events(
     estado: Optional[str] = None,
     severidad: Optional[str] = None,
     db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
 ):
+    usuario_id = None if is_admin(current_user) else current_user.id
     return event_service.list_events(
         db, skip=skip, limit=limit,
         camara_id=camara_id, estado=estado, severidad=severidad,
+        usuario_id=usuario_id,
     )
 
 
 @router.get("/events/{event_id}", response_model=EventResponse)
-def get_event(event_id: int, db: Session = Depends(get_db)):
+def get_event(
+    event_id: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
     event = event_service.get_event(db, event_id)
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")

@@ -3,7 +3,18 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.dependencies import get_current_user
-from app.api.routes import auth, health, cameras, stores, roles, users, events, alerts, evidences, identifications
+from app.api.routes import (
+    auth,
+    health,
+    cameras,
+    stores,
+    roles,
+    users,
+    events,
+    alerts,
+    event_images,
+    identifications,
+)
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -31,5 +42,5 @@ app.include_router(roles.router, prefix=settings.API_PREFIX, **_protected)
 app.include_router(users.router, prefix=settings.API_PREFIX, **_protected)
 app.include_router(events.router, prefix=settings.API_PREFIX, **_protected)
 app.include_router(alerts.router, prefix=settings.API_PREFIX, **_protected)
-app.include_router(evidences.router, prefix=settings.API_PREFIX, **_protected)
+app.include_router(event_images.router, prefix=settings.API_PREFIX, **_protected)
 app.include_router(identifications.router, prefix=settings.API_PREFIX, **_protected)
