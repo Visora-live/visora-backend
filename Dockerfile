@@ -10,7 +10,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-RUN chmod +x entrypoint.sh
+# Strip possible CRLF (Windows) so the shebang works on Linux, then make executable.
+RUN sed -i 's/\r$//' entrypoint.sh && chmod +x entrypoint.sh
 
 EXPOSE 8000
 CMD ["./entrypoint.sh"]
