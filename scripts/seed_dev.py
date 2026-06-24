@@ -37,7 +37,7 @@ def seed():
             rol_id=rol_admin.id,
         )
         propietario = Usuario(
-            username="propietario_demo",
+            username="propietario",
             email="propietario@visora.pe",
             contrasena=hash_password("Propietario1234!"),
             estado_acceso=True,
@@ -146,7 +146,7 @@ def seed():
 
         print("✅ Seed completado exitosamente")
         print(f"   Roles: admin (id={rol_admin.id}), propietario (id={rol_prop.id})")
-        print(f"   Usuarios: admin (id={admin.id}), propietario_demo (id={propietario.id})")
+        print(f"   Usuarios: admin (id={admin.id}), propietario (id={propietario.id})")
         print(f"   Tiendas: {tienda1.nombre} (id={tienda1.id}), {tienda2.nombre} (id={tienda2.id})")
         print(f"   Cámaras: {cam1.nombre_cam} (id={cam1.id}), {cam2.nombre_cam} (id={cam2.id})")
         print(f"   Evento id={evento.id}, EventoImagen id={ev_img.id}")

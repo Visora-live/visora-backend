@@ -16,7 +16,7 @@ def list_cameras(
     tienda_id: Optional[int] = None,
     usuario_id: Optional[int] = None,
 ) -> list[Camara]:
-    query = db.query(Camara)
+    query = db.query(Camara).filter(Camara.eliminado.is_(False))
     if tienda_id is not None:
         query = query.filter(Camara.tienda_id == tienda_id)
     elif usuario_id is not None:
@@ -30,7 +30,10 @@ def list_cameras(
 
 
 def get_camera(db: Session, camera_id: int) -> Camara | None:
-    return db.get(Camara, camera_id)
+    camera = db.get(Camara, camera_id)
+    if camera is None or camera.eliminado:
+        return None
+    return camera
 
 
 def create_camera(db: Session, payload: CameraCreate) -> Camara:
@@ -59,10 +62,12 @@ def update_camera(db: Session, camera_id: int, payload: CameraUpdate) -> Camara:
 
 
 def delete_camera(db: Session, camera_id: int) -> Camara:
+    # Logical delete: flag as eliminado so it disappears from listings/detail
+    # but the row (and its events/alerts FKs) stay intact in the DB.
     camera = db.get(Camara, camera_id)
-    if not camera:
+    if not camera or camera.eliminado:
         raise HTTPException(status_code=404, detail="Camera not found")
-    camera.estado = False
+    camera.eliminado = True
     db.commit()
     db.refresh(camera)
     return camera

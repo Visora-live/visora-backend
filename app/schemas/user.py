@@ -20,6 +20,7 @@ class UserUpdate(BaseModel):
     email: Optional[str] = None
     estado_acceso: Optional[bool] = None
     rol_id: Optional[int] = None
+    password: Optional[str] = None
 
 
 class UserResponse(BaseModel):

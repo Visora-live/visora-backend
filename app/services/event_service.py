@@ -18,7 +18,7 @@ def list_events(
     severidad: Optional[str] = None,
     usuario_id: Optional[int] = None,
 ) -> list[Evento]:
-    query = db.query(Evento)
+    query = db.query(Evento).filter(Evento.eliminado.is_(False))
     if camara_id is not None:
         query = query.filter(Evento.camara_id == camara_id)
     elif usuario_id is not None:
@@ -38,7 +38,10 @@ def list_events(
 
 
 def get_event(db: Session, event_id: int) -> Evento | None:
-    return db.get(Evento, event_id)
+    event = db.get(Evento, event_id)
+    if event is None or event.eliminado:
+        return None
+    return event
 
 
 def create_event(db: Session, payload: EventCreate) -> Evento:
@@ -68,10 +71,12 @@ def update_event(db: Session, event_id: int, payload: EventUpdate) -> Evento:
 
 
 def delete_event(db: Session, event_id: int) -> Evento:
+    # Logical delete: flag as eliminado so it disappears from listings/detail
+    # but the row stays in the DB (no data loss, no FK cascade).
     event = db.get(Evento, event_id)
-    if not event:
+    if not event or event.eliminado:
         raise HTTPException(status_code=404, detail="Event not found")
-    event.estado = "cerrado"
+    event.eliminado = True
     db.commit()
     db.refresh(event)
     return event

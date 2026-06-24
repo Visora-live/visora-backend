@@ -3,7 +3,12 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user, is_admin, require_admin
+from app.core.dependencies import (
+    get_current_user,
+    is_admin,
+    require_admin,
+    user_owns_camera,
+)
 from app.db.session import get_db
 from app.models.camera import Camara
 from app.models.store_user import TiendaUsuario
@@ -77,6 +82,12 @@ def update_event(
 def delete_event(
     event_id: int,
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(get_current_user),
 ):
+    event = event_service.get_event(db, event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    # Admin: any event. Propietario: only events on their own cameras.
+    if not user_owns_camera(db, current_user, event.camara_id):
+        raise HTTPException(status_code=403, detail="Access denied")
     return event_service.delete_event(db, event_id)

@@ -1,7 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user, is_admin, require_admin
+from app.core.dependencies import (
+    get_current_user,
+    is_admin,
+    require_admin,
+    user_owns_tienda,
+)
 from app.db.session import get_db
 from app.models.user import Usuario
 from app.schemas.store import StoreCreate, StoreResponse, StoreUpdate
@@ -47,8 +52,11 @@ def update_store(
     store_id: int,
     payload: StoreUpdate,
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(get_current_user),
 ):
+    # Admin: any store. Propietario: only their own assigned stores.
+    if not user_owns_tienda(db, current_user, store_id):
+        raise HTTPException(status_code=403, detail="Access denied")
     return store_service.update_store(db, store_id, payload)
 
 

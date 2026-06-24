@@ -14,6 +14,7 @@ from app.api.routes import (
     alerts,
     event_images,
     identifications,
+    recovery_requests,
 )
 
 app = FastAPI(
@@ -44,3 +45,5 @@ app.include_router(events.router, prefix=settings.API_PREFIX, **_protected)
 app.include_router(alerts.router, prefix=settings.API_PREFIX, **_protected)
 app.include_router(event_images.router, prefix=settings.API_PREFIX, **_protected)
 app.include_router(identifications.router, prefix=settings.API_PREFIX, **_protected)
+# Public POST (forgot-password) + admin-only GET/PATCH enforced per-route inside.
+app.include_router(recovery_requests.router, prefix=settings.API_PREFIX)

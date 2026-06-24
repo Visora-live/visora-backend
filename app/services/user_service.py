@@ -52,6 +52,10 @@ def update_user(db: Session, user_id: int, payload: UserUpdate) -> Usuario:
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     data = payload.model_dump(exclude_unset=True)
+    # Password change (admin): hash and store separately from plain fields.
+    new_password = data.pop("password", None)
+    if new_password:
+        user.contrasena = hash_password(new_password)
     if "username" in data:
         conflict = (
             db.query(Usuario)

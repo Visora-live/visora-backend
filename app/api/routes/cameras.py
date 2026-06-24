@@ -3,7 +3,12 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user, is_admin, require_admin
+from app.core.dependencies import (
+    get_current_user,
+    is_admin,
+    user_owns_camera,
+    user_owns_tienda,
+)
 from app.db.session import get_db
 from app.models.camera import Camara
 from app.models.store_user import TiendaUsuario
@@ -57,8 +62,11 @@ def list_cameras(
 def create_camera(
     payload: CameraCreate,
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(get_current_user),
 ):
+    # Admin: any store. Propietario: only stores they own.
+    if not user_owns_tienda(db, current_user, payload.tienda_id):
+        raise HTTPException(status_code=403, detail="Access denied")
     return camera_crud_service.create_camera(db, payload)
 
 
@@ -101,8 +109,14 @@ def update_camera(
     camera_id: int,
     payload: CameraUpdate,
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(get_current_user),
 ):
+    if not user_owns_camera(db, current_user, camera_id):
+        raise HTTPException(status_code=403, detail="Access denied")
+    # If reassigning the camera to another store, that store must also be owned.
+    target_tienda = getattr(payload, "tienda_id", None)
+    if target_tienda is not None and not user_owns_tienda(db, current_user, target_tienda):
+        raise HTTPException(status_code=403, detail="Access denied")
     return camera_crud_service.update_camera(db, camera_id, payload)
 
 
@@ -110,6 +124,8 @@ def update_camera(
 def delete_camera(
     camera_id: int,
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(get_current_user),
 ):
+    if not user_owns_camera(db, current_user, camera_id):
+        raise HTTPException(status_code=403, detail="Access denied")
     return camera_crud_service.delete_camera(db, camera_id)
