@@ -1,15 +1,19 @@
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
+
+AlertSeveridad = Literal["baja", "media", "alta", "critica"]
+AlertTipo = Literal["manual", "facial_recognition", "weapon_detection", "suspicious_activity", "system"]
+AlertEstado = Literal["abierta", "reconocida", "resuelta", "descartada"]
 
 
 class AlertBase(BaseModel):
     titulo: str = Field(..., max_length=500)
     descripcion: Optional[str] = Field(None, max_length=2000)
-    tipo: str = Field("manual", max_length=50)
-    severidad: str = Field("media", max_length=50)
-    estado: str = Field("abierta", max_length=50)
+    tipo: AlertTipo = "manual"
+    severidad: AlertSeveridad = "media"
+    estado: AlertEstado = "abierta"
     leida: bool = False
     evento_id: Optional[int] = None
     camara_id: Optional[int] = None
@@ -24,9 +28,9 @@ class AlertCreate(AlertBase):
 class AlertUpdate(BaseModel):
     titulo: Optional[str] = Field(None, max_length=500)
     descripcion: Optional[str] = Field(None, max_length=2000)
-    tipo: Optional[str] = Field(None, max_length=50)
-    severidad: Optional[str] = Field(None, max_length=50)
-    estado: Optional[str] = Field(None, max_length=50)
+    tipo: Optional[AlertTipo] = None
+    severidad: Optional[AlertSeveridad] = None
+    estado: Optional[AlertEstado] = None
     leida: Optional[bool] = None
     evento_id: Optional[int] = None
     camara_id: Optional[int] = None

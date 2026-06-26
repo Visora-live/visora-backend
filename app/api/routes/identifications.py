@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user, require_admin
@@ -8,6 +8,7 @@ from app.db.session import get_db
 from app.models.user import Usuario
 from app.schemas.identification import (
     IdentificationCreate,
+    IdentificationFuente,
     IdentificationResponse,
     IdentificationUpdate,
 )
@@ -18,10 +19,10 @@ router = APIRouter()
 
 @router.get("/identifications", response_model=list[IdentificationResponse])
 def list_identifications(
-    skip: int = 0,
-    limit: int = 50,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=500),
     evento_imagen_id: Optional[int] = None,
-    fuente: Optional[str] = None,
+    fuente: Optional[IdentificationFuente] = None,
     db: Session = Depends(get_db),
     _: Usuario = Depends(get_current_user),
 ):
