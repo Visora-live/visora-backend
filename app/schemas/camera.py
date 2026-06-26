@@ -1,14 +1,14 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CameraBase(BaseModel):
-    nombre_cam: str
-    direccion_ip: str
-    puerto: int = 8080
-    ubicacion_camara: Optional[str] = None
+    nombre_cam: str = Field(..., max_length=200)
+    direccion_ip: str = Field(..., max_length=255)
+    puerto: int = Field(8080, ge=1, le=65535)
+    ubicacion_camara: Optional[str] = Field(None, max_length=500)
     estado: bool = False
     source_type: str = "rtsp_h264"
     protocolo: str = "rtsp"
@@ -20,10 +20,10 @@ class CameraCreate(CameraBase):
 
 
 class CameraUpdate(BaseModel):
-    nombre_cam: Optional[str] = None
-    direccion_ip: Optional[str] = None
-    puerto: Optional[int] = None
-    ubicacion_camara: Optional[str] = None
+    nombre_cam: Optional[str] = Field(None, max_length=200)
+    direccion_ip: Optional[str] = Field(None, max_length=255)
+    puerto: Optional[int] = Field(None, ge=1, le=65535)
+    ubicacion_camara: Optional[str] = Field(None, max_length=500)
     estado: Optional[bool] = None
     source_type: Optional[str] = None
     protocolo: Optional[str] = None

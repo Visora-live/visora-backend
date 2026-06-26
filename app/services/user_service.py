@@ -16,13 +16,10 @@ def list_users(
     skip: int = 0,
     limit: int = 50,
     rol_id: Optional[int] = None,
-    estado_acceso: Optional[bool] = None,
 ) -> list[Usuario]:
     query = db.query(Usuario)
     if rol_id is not None:
         query = query.filter(Usuario.rol_id == rol_id)
-    if estado_acceso is not None:
-        query = query.filter(Usuario.estado_acceso == estado_acceso)
     return query.offset(skip).limit(limit).all()
 
 

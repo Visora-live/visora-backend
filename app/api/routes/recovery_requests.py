@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_admin
+from app.core.rate_limit import recovery_rate_limit
 from app.db.session import get_db
 from app.models.recovery_request import SolicitudRecuperacion
 from app.models.user import Usuario
@@ -15,11 +16,14 @@ router = APIRouter()
 
 
 @router.post("/recovery-requests", response_model=RecoveryRequestResponse, status_code=201)
-def create_recovery_request(payload: RecoveryRequestCreate, db: Session = Depends(get_db)):
+def create_recovery_request(
+    payload: RecoveryRequestCreate,
+    db: Session = Depends(get_db),
+    _: None = Depends(recovery_rate_limit),
+):
     """Public — submitted from /forgot-password. No auth required."""
     req = SolicitudRecuperacion(
         identificador=payload.identificador.strip(),
-        celular=(payload.celular.strip() if payload.celular else None),
         email=payload.email.strip(),
         descripcion=payload.descripcion.strip(),
     )
@@ -32,13 +36,15 @@ def create_recovery_request(payload: RecoveryRequestCreate, db: Session = Depend
 @router.get("/recovery-requests", response_model=list[RecoveryRequestResponse])
 def list_recovery_requests(
     only_unread: bool = False,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
     db: Session = Depends(get_db),
     _: Usuario = Depends(require_admin),
 ):
     query = db.query(SolicitudRecuperacion)
     if only_unread:
         query = query.filter(SolicitudRecuperacion.leida.is_(False))
-    return query.order_by(SolicitudRecuperacion.created_at.desc()).all()
+    return query.order_by(SolicitudRecuperacion.created_at.desc()).offset(skip).limit(limit).all()
 
 
 @router.get("/recovery-requests/unread-count")

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_admin
@@ -14,8 +14,8 @@ router = APIRouter()
 
 @router.get("/users", response_model=list[UserResponse])
 def list_users(
-    skip: int = 0,
-    limit: int = 50,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=500),
     rol_id: Optional[int] = None,
     db: Session = Depends(get_db),
     _: Usuario = Depends(require_admin),

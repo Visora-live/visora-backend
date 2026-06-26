@@ -15,10 +15,8 @@ from app.models.store_user import TiendaUsuario
 from app.models.user import Usuario
 from app.schemas.camera import (
     CameraConnectionDetailResponse,
-    CameraConnectionResponse,
     CameraCreate,
     CameraResponse,
-    CameraSnapshotTestResponse,
     CameraUpdate,
 )
 from app.services import camera_crud_service
@@ -28,26 +26,10 @@ router = APIRouter()
 camera_service = CameraConnectionService()
 
 
-@router.get("/cameras/test-ip-webcam", response_model=CameraConnectionResponse)
-def test_ip_webcam(
-    host: str = Query(..., description="IP Webcam host"),
-    port: int = Query(8080, description="IP Webcam port"),
-):
-    return camera_service.get_ip_webcam_connection_data(host=host, port=port)
-
-
-@router.get("/cameras/test-ip-webcam/snapshot", response_model=CameraSnapshotTestResponse)
-def test_ip_webcam_snapshot(
-    host: str = Query(..., description="IP Webcam host"),
-    port: int = Query(8080, description="IP Webcam port"),
-):
-    return camera_service.test_ip_webcam_snapshot(host=host, port=port)
-
-
 @router.get("/cameras", response_model=list[CameraResponse])
 def list_cameras(
-    skip: int = 0,
-    limit: int = 50,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=500),
     tienda_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: Usuario = Depends(get_current_user),
@@ -64,7 +46,6 @@ def create_camera(
     db: Session = Depends(get_db),
     current_user: Usuario = Depends(get_current_user),
 ):
-    # Admin: any store. Propietario: only stores they own.
     if not user_owns_tienda(db, current_user, payload.tienda_id):
         raise HTTPException(status_code=403, detail="Access denied")
     return camera_crud_service.create_camera(db, payload)
@@ -79,6 +60,8 @@ def get_camera(
     camera = camera_crud_service.get_camera(db, camera_id)
     if not camera:
         raise HTTPException(status_code=404, detail="Camera not found")
+    if not user_owns_camera(db, current_user, camera_id):
+        raise HTTPException(status_code=403, detail="Access denied")
     return camera
 
 
@@ -113,7 +96,6 @@ def update_camera(
 ):
     if not user_owns_camera(db, current_user, camera_id):
         raise HTTPException(status_code=403, detail="Access denied")
-    # If reassigning the camera to another store, that store must also be owned.
     target_tienda = getattr(payload, "tienda_id", None)
     if target_tienda is not None and not user_owns_tienda(db, current_user, target_tienda):
         raise HTTPException(status_code=403, detail="Access denied")

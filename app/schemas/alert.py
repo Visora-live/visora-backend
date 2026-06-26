@@ -1,15 +1,15 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AlertBase(BaseModel):
-    titulo: str
-    descripcion: Optional[str] = None
-    tipo: str = "manual"
-    severidad: str = "media"
-    estado: str = "abierta"
+    titulo: str = Field(..., max_length=500)
+    descripcion: Optional[str] = Field(None, max_length=2000)
+    tipo: str = Field("manual", max_length=50)
+    severidad: str = Field("media", max_length=50)
+    estado: str = Field("abierta", max_length=50)
     leida: bool = False
     evento_id: Optional[int] = None
     camara_id: Optional[int] = None
@@ -22,11 +22,11 @@ class AlertCreate(AlertBase):
 
 
 class AlertUpdate(BaseModel):
-    titulo: Optional[str] = None
-    descripcion: Optional[str] = None
-    tipo: Optional[str] = None
-    severidad: Optional[str] = None
-    estado: Optional[str] = None
+    titulo: Optional[str] = Field(None, max_length=500)
+    descripcion: Optional[str] = Field(None, max_length=2000)
+    tipo: Optional[str] = Field(None, max_length=50)
+    severidad: Optional[str] = Field(None, max_length=50)
+    estado: Optional[str] = Field(None, max_length=50)
     leida: Optional[bool] = None
     evento_id: Optional[int] = None
     camara_id: Optional[int] = None

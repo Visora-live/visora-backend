@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user, is_admin, require_admin
@@ -16,8 +16,8 @@ router = APIRouter()
 
 @router.get("/alerts", response_model=list[AlertResponse])
 def list_alerts(
-    skip: int = 0,
-    limit: int = 50,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=500),
     estado: Optional[str] = None,
     severidad: Optional[str] = None,
     tipo: Optional[str] = None,
@@ -45,6 +45,29 @@ def get_alert(
     alert = alert_service.get_alert(db, alert_id)
     if not alert:
         raise HTTPException(status_code=404, detail="Alert not found")
+    if not is_admin(current_user):
+        owned = (
+            db.query(TiendaUsuario.tienda_id)
+            .filter(TiendaUsuario.usuario_id == current_user.id)
+            .subquery()
+        )
+        has_access = False
+        if alert.tienda_id:
+            has_access = bool(
+                db.query(TiendaUsuario).filter(
+                    TiendaUsuario.usuario_id == current_user.id,
+                    TiendaUsuario.tienda_id == alert.tienda_id,
+                ).first()
+            )
+        elif alert.camara_id:
+            has_access = bool(
+                db.query(Camara).filter(
+                    Camara.id == alert.camara_id,
+                    Camara.tienda_id.in_(owned),
+                ).first()
+            )
+        if not has_access:
+            raise HTTPException(status_code=403, detail="Access denied")
     return alert
 
 

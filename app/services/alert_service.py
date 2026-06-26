@@ -39,6 +39,8 @@ def list_alerts(
     query = db.query(Alerta)
     if estado is not None:
         query = query.filter(Alerta.estado == estado)
+    else:
+        query = query.filter(Alerta.estado != "descartada")
     if severidad is not None:
         query = query.filter(Alerta.severidad == severidad)
     if tipo is not None:

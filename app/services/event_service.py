@@ -14,6 +14,7 @@ def list_events(
     skip: int = 0,
     limit: int = 50,
     camara_id: Optional[int] = None,
+    tienda_id: Optional[int] = None,
     estado: Optional[str] = None,
     severidad: Optional[str] = None,
     usuario_id: Optional[int] = None,
@@ -21,15 +22,18 @@ def list_events(
     query = db.query(Evento).filter(Evento.eliminado.is_(False))
     if camara_id is not None:
         query = query.filter(Evento.camara_id == camara_id)
-    elif usuario_id is not None:
-        assigned_tiendas = (
-            db.query(TiendaUsuario.tienda_id)
-            .filter(TiendaUsuario.usuario_id == usuario_id)
-            .subquery()
-        )
-        query = query.join(Camara, Evento.camara_id == Camara.id).filter(
-            Camara.tienda_id.in_(assigned_tiendas)
-        )
+    else:
+        if tienda_id is not None or usuario_id is not None:
+            query = query.join(Camara, Evento.camara_id == Camara.id)
+        if tienda_id is not None:
+            query = query.filter(Camara.tienda_id == tienda_id)
+        elif usuario_id is not None:
+            assigned_tiendas = (
+                db.query(TiendaUsuario.tienda_id)
+                .filter(TiendaUsuario.usuario_id == usuario_id)
+                .subquery()
+            )
+            query = query.filter(Camara.tienda_id.in_(assigned_tiendas))
     if estado is not None:
         query = query.filter(Evento.estado == estado)
     if severidad is not None:
@@ -80,3 +84,4 @@ def delete_event(db: Session, event_id: int) -> Evento:
     db.commit()
     db.refresh(event)
     return event
+
