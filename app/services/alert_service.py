@@ -58,7 +58,7 @@ def list_alerts(
         query = query.filter(Alerta.camara_id == camara_id)
     if evento_id is not None:
         query = query.filter(Alerta.evento_id == evento_id)
-    return query.offset(skip).limit(limit).all()
+    return query.order_by(Alerta.created_at.desc()).offset(skip).limit(limit).all()
 
 
 def get_alert(db: Session, alert_id: int) -> Alerta | None:

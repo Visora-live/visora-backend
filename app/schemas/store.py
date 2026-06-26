@@ -33,6 +33,7 @@ class StoreUpdate(BaseModel):
 
 class StoreResponse(StoreBase):
     id: int
+    camera_count: int = 0
     created_at: datetime
     updated_at: datetime
 

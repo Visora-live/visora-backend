@@ -1,6 +1,9 @@
+import os
+import pathlib
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import (
@@ -19,11 +22,14 @@ from app.schemas.camera import (
     CameraResponse,
     CameraUpdate,
 )
-from app.services import camera_crud_service
+from app.services import camera_crud_service, detection_manager
 from app.services.camera_connection_service import CameraConnectionService
 
 router = APIRouter()
+public_router = APIRouter()
 camera_service = CameraConnectionService()
+
+_SNAPSHOT_DIR = pathlib.Path(os.getenv("SNAPSHOT_DIR", r"C:\visora_snapshots"))
 
 
 @router.get("/cameras", response_model=list[CameraResponse])
@@ -100,6 +106,56 @@ def update_camera(
     if target_tienda is not None and not user_owns_tienda(db, current_user, target_tienda):
         raise HTTPException(status_code=403, detail="Access denied")
     return camera_crud_service.update_camera(db, camera_id, payload)
+
+
+@router.get("/cameras/{camera_id}/detect")
+def get_detection_status(
+    camera_id: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    if not user_owns_camera(db, current_user, camera_id):
+        raise HTTPException(status_code=403, detail="Access denied")
+    return detection_manager.status(camera_id)
+
+
+@router.post("/cameras/{camera_id}/detect", status_code=200)
+def start_detection(
+    camera_id: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    camera = camera_crud_service.get_camera(db, camera_id)
+    if not camera:
+        raise HTTPException(status_code=404, detail="Camera not found")
+    if not user_owns_camera(db, current_user, camera_id):
+        raise HTTPException(status_code=403, detail="Access denied")
+    already = not detection_manager.start(camera_id)
+    return {"camera_id": camera_id, "running": True, "already_running": already}
+
+
+@router.delete("/cameras/{camera_id}/detect", status_code=200)
+def stop_detection(
+    camera_id: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    if not user_owns_camera(db, current_user, camera_id):
+        raise HTTPException(status_code=403, detail="Access denied")
+    detection_manager.stop(camera_id)
+    return {"camera_id": camera_id, "running": False}
+
+
+@public_router.get("/cameras/{camera_id}/detect/snapshot")
+def get_detection_snapshot(camera_id: int):
+    snap = _SNAPSHOT_DIR / f"cam{camera_id}.jpg"
+    if not snap.exists():
+        raise HTTPException(status_code=404, detail="No snapshot available")
+    return FileResponse(
+        str(snap),
+        media_type="image/jpeg",
+        headers={"Cache-Control": "no-store, no-cache", "Pragma": "no-cache"},
+    )
 
 
 @router.delete("/cameras/{camera_id}", response_model=CameraResponse)

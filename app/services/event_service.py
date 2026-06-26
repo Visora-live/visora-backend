@@ -38,7 +38,7 @@ def list_events(
         query = query.filter(Evento.estado == estado)
     if severidad is not None:
         query = query.filter(Evento.severidad == severidad)
-    return query.offset(skip).limit(limit).all()
+    return query.order_by(Evento.created_at.desc()).offset(skip).limit(limit).all()
 
 
 def get_event(db: Session, event_id: int) -> Evento | None:

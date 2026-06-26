@@ -9,7 +9,7 @@ from app.models.user import Usuario
 
 _bearer = HTTPBearer(auto_error=False)
 
-_ADMIN_TYPES = {"admin"}
+_ADMIN_TYPES = {"admin", "administrador"}
 
 
 def get_current_user(
