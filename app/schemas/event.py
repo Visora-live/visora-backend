@@ -9,16 +9,18 @@ EventEstado = Literal["abierto", "revisado", "descartado", "cerrado"]
 
 
 class EventBase(BaseModel):
-    estado: EventEstado = "abierto"
+    estado: str = "abierto"
     fecha_hora: Optional[datetime] = None
     comentario: Optional[str] = Field(None, max_length=2000)
     camara_id: int
-    tipo: EventTipo = "desconocido"
-    severidad: EventSeveridad = "media"
+    tipo: str = "desconocido"
+    severidad: str = "media"
 
 
 class EventCreate(EventBase):
-    pass
+    tipo: EventTipo = "desconocido"
+    severidad: EventSeveridad = "media"
+    estado: EventEstado = "abierto"
 
 
 class EventUpdate(BaseModel):

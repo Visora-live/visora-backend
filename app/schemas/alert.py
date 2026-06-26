@@ -11,9 +11,9 @@ AlertEstado = Literal["abierta", "reconocida", "resuelta", "descartada"]
 class AlertBase(BaseModel):
     titulo: str = Field(..., max_length=500)
     descripcion: Optional[str] = Field(None, max_length=2000)
-    tipo: AlertTipo = "manual"
-    severidad: AlertSeveridad = "media"
-    estado: AlertEstado = "abierta"
+    tipo: str = "manual"
+    severidad: str = "media"
+    estado: str = "abierta"
     leida: bool = False
     evento_id: Optional[int] = None
     camara_id: Optional[int] = None
@@ -22,7 +22,9 @@ class AlertBase(BaseModel):
 
 
 class AlertCreate(AlertBase):
-    pass
+    tipo: AlertTipo = "manual"
+    severidad: AlertSeveridad = "media"
+    estado: AlertEstado = "abierta"
 
 
 class AlertUpdate(BaseModel):
