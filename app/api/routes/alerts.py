@@ -9,7 +9,7 @@ from app.models.camera import Camara
 from app.models.store_user import TiendaUsuario
 from app.models.user import Usuario
 from app.schemas.alert import AlertCreate, AlertResponse, AlertUpdate
-from app.services import alert_service
+from app.services import alert_service, detection_manager
 
 router = APIRouter()
 
@@ -100,6 +100,13 @@ def create_alert(
             Camara.id == payload.camara_id, Camara.tienda_id.in_(owned)
         ).first():
             raise HTTPException(status_code=403, detail="Access denied")
+
+    cam_id = payload.camara_id or 0
+    if payload.tipo == "weapon_detection" and not detection_manager.is_detection_active(cam_id):
+        raise HTTPException(status_code=409, detail="weapon detection paused")
+    if payload.tipo == "facial_recognition" and not detection_manager.is_face_active(cam_id):
+        raise HTTPException(status_code=409, detail="face detection paused")
+
     return alert_service.create_alert(db, payload)
 
 

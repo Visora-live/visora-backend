@@ -8,6 +8,7 @@ from pathlib import Path
 
 # ── Weapon worker ─────────────────────────────────────────────────────────────
 _WEAPON_PROCESSES: dict[int, subprocess.Popen] = {}
+_WEAPON_PAUSED: set[int] = set()  # cameras with detection explicitly stopped
 
 _WEAPON_PYTHON = os.getenv("DETECTION_PYTHON", r"C:\visora_venv\Scripts\python.exe")
 _WEAPON_SCRIPT = os.getenv(
@@ -20,6 +21,7 @@ _WEAPON_SCRIPT = os.getenv(
 
 # ── Face worker ───────────────────────────────────────────────────────────────
 _FACE_PROCESSES: dict[int, subprocess.Popen] = {}
+_FACE_PAUSED: set[int] = set()  # cameras with face detection explicitly stopped
 
 _FACE_PYTHON = os.getenv("DETECTION_FACE_PYTHON", r"C:\visora_venv\Scripts\python.exe")
 _FACE_SCRIPT = os.getenv(
@@ -163,7 +165,7 @@ def start(camera_id: int) -> bool:
     pf = _pause_file(camera_id)
     pid_f = _pid_file(camera_id)
 
-    # Kill any stale worker from a previous backend process
+    _WEAPON_PAUSED.discard(camera_id)
     _kill_stale(pid_f)
 
     if _is_alive(_WEAPON_PROCESSES, camera_id) and not pf.exists():
@@ -178,11 +180,16 @@ def start(camera_id: int) -> bool:
 
 
 def stop(camera_id: int) -> bool:
-    if not _is_alive(_WEAPON_PROCESSES, camera_id):
-        return False
+    _WEAPON_PAUSED.add(camera_id)
     _PAUSE_DIR.mkdir(parents=True, exist_ok=True)
     _pause_file(camera_id).touch()
+    if _is_alive(_WEAPON_PROCESSES, camera_id):
+        pass  # local subprocess will read pause file; cloud workers blocked via _WEAPON_PAUSED
     return True
+
+
+def is_detection_active(camera_id: int) -> bool:
+    return camera_id not in _WEAPON_PAUSED
 
 
 def kill(camera_id: int) -> bool:
@@ -225,6 +232,7 @@ def start_face(camera_id: int) -> bool:
     pf = _face_pause_file(camera_id)
     pid_f = _face_pid_file(camera_id)
 
+    _FACE_PAUSED.discard(camera_id)
     _kill_stale(pid_f)
 
     if _is_alive(_FACE_PROCESSES, camera_id) and not pf.exists():
@@ -238,11 +246,14 @@ def start_face(camera_id: int) -> bool:
 
 
 def stop_face(camera_id: int) -> bool:
-    if not _is_alive(_FACE_PROCESSES, camera_id):
-        return False
+    _FACE_PAUSED.add(camera_id)
     _PAUSE_DIR.mkdir(parents=True, exist_ok=True)
     _face_pause_file(camera_id).touch()
     return True
+
+
+def is_face_active(camera_id: int) -> bool:
+    return camera_id not in _FACE_PAUSED
 
 
 def kill_face(camera_id: int) -> bool:
