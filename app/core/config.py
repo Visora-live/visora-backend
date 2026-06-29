@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     # Camera
     CAMERA_CONNECTION_MODE: str = "local_rtsp"  # "local_rtsp" | "cloud_ingest"
 
+    # Detection pre-warm: comma-separated camera IDs to spawn workers on backend start
+    DETECTION_PREWARM_CAMERAS: str = ""
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
     @model_validator(mode="after")
