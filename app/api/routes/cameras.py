@@ -26,7 +26,6 @@ from app.services import camera_crud_service, detection_manager
 from app.services.camera_connection_service import CameraConnectionService
 
 router = APIRouter()
-public_router = APIRouter()
 camera_service = CameraConnectionService()
 
 _SNAPSHOT_DIR = pathlib.Path(os.getenv("SNAPSHOT_DIR", r"C:\visora_snapshots"))
@@ -146,11 +145,75 @@ def stop_detection(
     return {"camera_id": camera_id, "running": False}
 
 
-@public_router.get("/cameras/{camera_id}/detect/snapshot")
-def get_detection_snapshot(camera_id: int):
+@router.get("/cameras/{camera_id}/detect/snapshot")
+def get_detection_snapshot(
+    camera_id: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    if not user_owns_camera(db, current_user, camera_id):
+        raise HTTPException(status_code=403, detail="Access denied")
     snap = _SNAPSHOT_DIR / f"cam{camera_id}.jpg"
     if not snap.exists():
         raise HTTPException(status_code=404, detail="No snapshot available")
+    return FileResponse(
+        str(snap),
+        media_type="image/jpeg",
+        headers={"Cache-Control": "no-store, no-cache", "Pragma": "no-cache"},
+    )
+
+
+# ── Face detection endpoints ──────────────────────────────────────────────────
+
+@router.get("/cameras/{camera_id}/detect/face")
+def get_face_detection_status(
+    camera_id: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    if not user_owns_camera(db, current_user, camera_id):
+        raise HTTPException(status_code=403, detail="Access denied")
+    return detection_manager.face_status(camera_id)
+
+
+@router.post("/cameras/{camera_id}/detect/face", status_code=200)
+def start_face_detection(
+    camera_id: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    camera = camera_crud_service.get_camera(db, camera_id)
+    if not camera:
+        raise HTTPException(status_code=404, detail="Camera not found")
+    if not user_owns_camera(db, current_user, camera_id):
+        raise HTTPException(status_code=403, detail="Access denied")
+    already = not detection_manager.start_face(camera_id)
+    return {"camera_id": camera_id, "face_running": True, "already_running": already}
+
+
+@router.delete("/cameras/{camera_id}/detect/face", status_code=200)
+def stop_face_detection(
+    camera_id: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    if not user_owns_camera(db, current_user, camera_id):
+        raise HTTPException(status_code=403, detail="Access denied")
+    detection_manager.stop_face(camera_id)
+    return {"camera_id": camera_id, "face_running": False}
+
+
+@router.get("/cameras/{camera_id}/detect/face/snapshot")
+def get_face_snapshot(
+    camera_id: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    if not user_owns_camera(db, current_user, camera_id):
+        raise HTTPException(status_code=403, detail="Access denied")
+    snap = _SNAPSHOT_DIR / f"cam{camera_id}_face.jpg"
+    if not snap.exists():
+        raise HTTPException(status_code=404, detail="No face snapshot available")
     return FileResponse(
         str(snap),
         media_type="image/jpeg",

@@ -1,7 +1,7 @@
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.core.config import settings
 from app.db.session import get_db
@@ -13,13 +13,17 @@ _ADMIN_TYPES = {"admin", "administrador"}
 
 
 def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
     db: Session = Depends(get_db),
 ) -> Usuario:
-    if credentials is None:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    # Cookie takes priority (browser); fall back to Bearer (worker / API clients)
+    token: str | None = request.cookies.get("visora_token")
+    if not token:
+        if credentials is None:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        token = credentials.credentials
 
-    token = credentials.credentials
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         sub: str | None = payload.get("sub")
@@ -33,7 +37,12 @@ def get_current_user(
     except (ValueError, TypeError):
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    user: Usuario | None = db.query(Usuario).filter(Usuario.id == user_id).first()
+    user: Usuario | None = (
+        db.query(Usuario)
+        .options(selectinload(Usuario.rol))
+        .filter(Usuario.id == user_id)
+        .first()
+    )
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
     if not user.estado_acceso:

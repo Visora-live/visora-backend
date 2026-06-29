@@ -6,7 +6,13 @@ from sqlalchemy.orm import Session, sessionmaker
 from app.core.config import settings
 
 engine: Optional[Engine] = (
-    create_engine(settings.DATABASE_URL, pool_pre_ping=True)
+    create_engine(
+        settings.DATABASE_URL,
+        pool_pre_ping=True,
+        pool_size=10,
+        max_overflow=20,
+        pool_recycle=1800,
+    )
     if settings.DATABASE_URL
     else None
 )

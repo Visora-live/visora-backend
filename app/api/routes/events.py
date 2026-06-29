@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import (
     get_current_user,
     is_admin,
-    require_admin,
     user_owns_camera,
 )
 from app.db.session import get_db
@@ -77,8 +76,13 @@ def update_event(
     event_id: int,
     payload: EventUpdate,
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(get_current_user),
 ):
+    event = event_service.get_event(db, event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    if not user_owns_camera(db, current_user, event.camara_id):
+        raise HTTPException(status_code=403, detail="Access denied")
     return event_service.update_event(db, event_id, payload)
 
 

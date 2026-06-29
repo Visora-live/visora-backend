@@ -61,6 +61,27 @@ def list_alerts(
     return query.order_by(Alerta.created_at.desc()).offset(skip).limit(limit).all()
 
 
+def count_unread(
+    db: Session,
+    tienda_id: Optional[int] = None,
+    usuario_id: Optional[int] = None,
+) -> int:
+    query = db.query(Alerta).filter(
+        Alerta.estado != "descartada",
+        Alerta.leida.is_(False),
+    )
+    if tienda_id is not None:
+        query = query.filter(Alerta.tienda_id == tienda_id)
+    elif usuario_id is not None:
+        assigned = (
+            db.query(TiendaUsuario.tienda_id)
+            .filter(TiendaUsuario.usuario_id == usuario_id)
+            .subquery()
+        )
+        query = query.filter(Alerta.tienda_id.in_(assigned))
+    return query.count()
+
+
 def get_alert(db: Session, alert_id: int) -> Alerta | None:
     return db.get(Alerta, alert_id)
 

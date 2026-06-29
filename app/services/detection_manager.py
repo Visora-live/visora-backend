@@ -32,7 +32,7 @@ _FACE_SCRIPT = os.getenv(
 
 # ── Shared config ─────────────────────────────────────────────────────────────
 _VISORA_USER = os.getenv("DETECTION_VISORA_USER", "admin")
-_VISORA_PASS = os.getenv("DETECTION_VISORA_PASS", "Admin1234!")
+_VISORA_PASS = os.getenv("DETECTION_VISORA_PASS", "")
 _API_BASE    = os.getenv("DETECTION_API_BASE", "http://localhost:8000/api")
 _MEDIAMTX    = os.getenv("DETECTION_MEDIAMTX_HOST", "localhost")
 _PAUSE_DIR   = Path(os.getenv("SNAPSHOT_DIR", r"C:\visora_snapshots"))
@@ -138,6 +138,9 @@ def _spawn(
         print(f"[detection_manager] Spawned cam {camera_id} PID={proc.pid}", flush=True)
     except OSError as exc:
         print(f"[detection_manager] Failed to spawn worker cam {camera_id}: {exc}", flush=True)
+    finally:
+        log_out.close()
+        log_err.close()
 
 
 def _kill_proc(proc_map: dict, camera_id: int, pid_file: Path) -> bool:
@@ -170,7 +173,7 @@ def start(camera_id: int) -> bool:
     pf.unlink(missing_ok=True)
     if not _is_alive(_WEAPON_PROCESSES, camera_id):
         _spawn(_WEAPON_PROCESSES, _WEAPON_PYTHON, _WEAPON_SCRIPT, camera_id,
-               pid_f, {"ALERT_COOLDOWN": "30", "FRAME_SKIP": "2"})
+               pid_f, {"ALERT_COOLDOWN": "30", "FRAME_SKIP": "1", "CAPTURE_WINDOW": "1.0"})
     return True
 
 

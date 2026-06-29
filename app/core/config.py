@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
+    # Cookie auth
+    COOKIE_SECURE: bool = False   # True in production (HTTPS required)
+    COOKIE_DOMAIN: str = ""       # e.g. ".visora.com" for subdomain sharing on AWS
+
     # Camera
     CAMERA_CONNECTION_MODE: str = "local_rtsp"  # "local_rtsp" | "cloud_ingest"
 

@@ -3,6 +3,7 @@ from typing import Optional
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.models.alert import Alerta
 from app.models.camera import Camara
 from app.models.event import Evento
 from app.models.store_user import TiendaUsuario
@@ -75,11 +76,13 @@ def update_event(db: Session, event_id: int, payload: EventUpdate) -> Evento:
 
 
 def delete_event(db: Session, event_id: int) -> Evento:
-    # Logical delete: flag as eliminado so it disappears from listings/detail
-    # but the row stays in the DB (no data loss, no FK cascade).
     event = db.get(Evento, event_id)
     if not event or event.eliminado:
         raise HTTPException(status_code=404, detail="Event not found")
+    # Cascade: discard related alerts
+    db.query(Alerta).filter(Alerta.evento_id == event_id).update(
+        {"estado": "descartada"}, synchronize_session=False
+    )
     event.eliminado = True
     db.commit()
     db.refresh(event)

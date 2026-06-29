@@ -21,7 +21,6 @@ from app.api.routes import (
     recovery_requests,
     algorithm,
 )
-from app.api.routes.cameras import public_router as cameras_public_router
 from app.services import detection_manager
 
 
@@ -41,7 +40,7 @@ async def lifespan(app: FastAPI):
                 detection_manager._WEAPON_SCRIPT,
                 cam_id,
                 detection_manager._pid_file(cam_id),
-                {"ALERT_COOLDOWN": "30", "FRAME_SKIP": "2"},
+                {"ALERT_COOLDOWN": "30", "FRAME_SKIP": "1", "CAPTURE_WINDOW": "1.0"},
             )
     yield
     # Shutdown: kill all active workers
@@ -85,7 +84,6 @@ _protected = {"dependencies": [Depends(get_current_user)]}
 
 app.include_router(auth.router, prefix=settings.API_PREFIX)
 app.include_router(health.router, prefix=settings.API_PREFIX)
-app.include_router(cameras_public_router, prefix=settings.API_PREFIX)
 app.include_router(cameras.router, prefix=settings.API_PREFIX, **_protected)
 app.include_router(stores.router, prefix=settings.API_PREFIX, **_protected)
 app.include_router(roles.router, prefix=settings.API_PREFIX, **_protected)

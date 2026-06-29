@@ -28,11 +28,19 @@ def get_user(db: Session, user_id: int) -> Usuario | None:
 
 
 def create_user(db: Session, payload: UserCreate) -> Usuario:
-    if db.query(Usuario).filter(Usuario.username == payload.username).first():
-        raise HTTPException(status_code=400, detail="Username already taken")
-    if payload.email:
-        if db.query(Usuario).filter(Usuario.email == payload.email).first():
-            raise HTTPException(status_code=400, detail="Email already registered")
+    from sqlalchemy import or_
+    conflict = (
+        db.query(Usuario)
+        .filter(or_(
+            Usuario.username == payload.username,
+            (Usuario.email == payload.email) if payload.email else False,
+        ))
+        .first()
+    )
+    if conflict:
+        if conflict.username == payload.username:
+            raise HTTPException(status_code=400, detail="Username already taken")
+        raise HTTPException(status_code=400, detail="Email already registered")
     if not db.get(Rol, payload.rol_id):
         raise HTTPException(status_code=404, detail="Role not found")
     data = payload.model_dump(exclude={"password"})

@@ -17,7 +17,6 @@ class SolicitudRecuperacion(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     identificador: Mapped[str] = mapped_column(String(150), nullable=False)
-    celular: Mapped[str | None] = mapped_column(String(30), nullable=True)
     email: Mapped[str] = mapped_column(String(200), nullable=False)
     descripcion: Mapped[str] = mapped_column(Text, nullable=False)
     leida: Mapped[bool] = mapped_column(
