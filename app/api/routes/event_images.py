@@ -1,9 +1,12 @@
+import os
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user, require_admin, user_owns_camera
+from app.core.config import settings
 from app.db.session import get_db
 from app.models.event import Evento
 from app.models.user import Usuario
@@ -44,6 +47,28 @@ async def upload_event_image(
     return await event_image_service.upload_event_image(
         db=db, evento_id=evento_id, file=file,
         es_frame_representativo=es_frame_representativo,
+    )
+
+
+@router.get("/event-images/{event_image_id}/file")
+def get_event_image_file(
+    event_image_id: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    ev_img = event_image_service.get_event_image(db, event_image_id)
+    if not ev_img:
+        raise HTTPException(status_code=404, detail="Event image not found")
+    event = db.get(Evento, ev_img.evento_id)
+    if not event or not user_owns_camera(db, current_user, event.camara_id):
+        raise HTTPException(status_code=403, detail="Access denied")
+    full_path = os.path.join(settings.LOCAL_STORAGE_PATH, ev_img.storage_ref)
+    if not os.path.exists(full_path):
+        raise HTTPException(status_code=404, detail="Image file not found on disk")
+    return FileResponse(
+        full_path,
+        media_type=ev_img.content_type or "image/jpeg",
+        headers={"Cache-Control": "no-store, no-cache"},
     )
 
 

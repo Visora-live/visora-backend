@@ -189,7 +189,7 @@ def stop(camera_id: int) -> bool:
 
 
 def is_detection_active(camera_id: int) -> bool:
-    return camera_id not in _WEAPON_PAUSED
+    return camera_id not in _WEAPON_PAUSED and not _pause_file(camera_id).exists()
 
 
 def kill(camera_id: int) -> bool:
@@ -198,28 +198,14 @@ def kill(camera_id: int) -> bool:
 
 
 def is_running(camera_id: int) -> bool:
-    # Check in-memory first; fall back to PID file for cross-restart awareness
-    if _is_alive(_WEAPON_PROCESSES, camera_id) and not _pause_file(camera_id).exists():
-        return True
-    pid = _read_pid(_pid_file(camera_id))
-    if pid is None:
+    # Explicitly stopped by user — pause file is the source of truth (survives restarts)
+    if _pause_file(camera_id).exists() or camera_id in _WEAPON_PAUSED:
         return False
-    # Check if the PID is actually alive
-    try:
-        if sys.platform == "win32":
-            result = subprocess.run(
-                ["tasklist", "/FI", f"PID eq {pid}", "/NH"],
-                capture_output=True, text=True,
-            )
-            alive = str(pid) in result.stdout
-        else:
-            os.kill(pid, 0)
-            alive = True
-    except Exception:
-        alive = False
-    if not alive:
-        _pid_file(camera_id).unlink(missing_ok=True)
-    return alive and not _pause_file(camera_id).exists()
+    # Local subprocess running (dev/local mode)
+    if camera_id in _WEAPON_PROCESSES:
+        return _is_alive(_WEAPON_PROCESSES, camera_id)
+    # No local process → cloud worker on separate instance; assume active unless paused
+    return True
 
 
 def status(camera_id: int) -> dict:
@@ -262,7 +248,11 @@ def kill_face(camera_id: int) -> bool:
 
 
 def is_face_running(camera_id: int) -> bool:
-    return _is_alive(_FACE_PROCESSES, camera_id) and not _face_pause_file(camera_id).exists()
+    if _face_pause_file(camera_id).exists() or camera_id in _FACE_PAUSED:
+        return False
+    if camera_id in _FACE_PROCESSES:
+        return _is_alive(_FACE_PROCESSES, camera_id)
+    return True
 
 
 def face_status(camera_id: int) -> dict:
