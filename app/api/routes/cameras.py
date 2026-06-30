@@ -2,7 +2,7 @@ import os
 import pathlib
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
@@ -161,6 +161,20 @@ def get_detection_snapshot(
         media_type="image/jpeg",
         headers={"Cache-Control": "no-store, no-cache", "Pragma": "no-cache"},
     )
+
+
+@router.post("/cameras/{camera_id}/detect/snapshot", status_code=204)
+async def upload_detection_snapshot(
+    camera_id: int,
+    file: UploadFile = File(...),
+    current_user: Usuario = Depends(get_current_user),
+):
+    if not is_admin(current_user):
+        raise HTTPException(status_code=403, detail="Admin only")
+    _SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
+    data = await file.read()
+    snap = _SNAPSHOT_DIR / f"cam{camera_id}.jpg"
+    snap.write_bytes(data)
 
 
 # ── Face detection endpoints ──────────────────────────────────────────────────
