@@ -3,6 +3,7 @@ from typing import Optional
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.models.alert import Alerta
 from app.models.camera import Camara
 from app.models.event import Evento
 from app.models.store_user import TiendaUsuario
@@ -14,31 +15,38 @@ def list_events(
     skip: int = 0,
     limit: int = 50,
     camara_id: Optional[int] = None,
+    tienda_id: Optional[int] = None,
     estado: Optional[str] = None,
     severidad: Optional[str] = None,
     usuario_id: Optional[int] = None,
 ) -> list[Evento]:
-    query = db.query(Evento)
+    query = db.query(Evento).filter(Evento.eliminado.is_(False))
     if camara_id is not None:
         query = query.filter(Evento.camara_id == camara_id)
-    elif usuario_id is not None:
-        assigned_tiendas = (
-            db.query(TiendaUsuario.tienda_id)
-            .filter(TiendaUsuario.usuario_id == usuario_id)
-            .subquery()
-        )
-        query = query.join(Camara, Evento.camara_id == Camara.id).filter(
-            Camara.tienda_id.in_(assigned_tiendas)
-        )
+    else:
+        if tienda_id is not None or usuario_id is not None:
+            query = query.join(Camara, Evento.camara_id == Camara.id)
+        if tienda_id is not None:
+            query = query.filter(Camara.tienda_id == tienda_id)
+        elif usuario_id is not None:
+            assigned_tiendas = (
+                db.query(TiendaUsuario.tienda_id)
+                .filter(TiendaUsuario.usuario_id == usuario_id)
+                .subquery()
+            )
+            query = query.filter(Camara.tienda_id.in_(assigned_tiendas))
     if estado is not None:
         query = query.filter(Evento.estado == estado)
     if severidad is not None:
         query = query.filter(Evento.severidad == severidad)
-    return query.offset(skip).limit(limit).all()
+    return query.order_by(Evento.created_at.desc()).offset(skip).limit(limit).all()
 
 
 def get_event(db: Session, event_id: int) -> Evento | None:
-    return db.get(Evento, event_id)
+    event = db.get(Evento, event_id)
+    if event is None or event.eliminado:
+        return None
+    return event
 
 
 def create_event(db: Session, payload: EventCreate) -> Evento:
@@ -62,6 +70,10 @@ def update_event(db: Session, event_id: int, payload: EventUpdate) -> Evento:
             raise HTTPException(status_code=404, detail="Camera not found")
     for key, value in data.items():
         setattr(event, key, value)
+    if data.get("estado") in ("descartado", "revisado"):
+        db.query(Alerta).filter(Alerta.evento_id == event_id).update(
+            {"estado": "resuelta"}, synchronize_session=False
+        )
     db.commit()
     db.refresh(event)
     return event
@@ -69,9 +81,14 @@ def update_event(db: Session, event_id: int, payload: EventUpdate) -> Evento:
 
 def delete_event(db: Session, event_id: int) -> Evento:
     event = db.get(Evento, event_id)
-    if not event:
+    if not event or event.eliminado:
         raise HTTPException(status_code=404, detail="Event not found")
-    event.estado = "cerrado"
+    # Cascade: discard related alerts
+    db.query(Alerta).filter(Alerta.evento_id == event_id).update(
+        {"estado": "descartada"}, synchronize_session=False
+    )
+    event.eliminado = True
     db.commit()
     db.refresh(event)
     return event
+

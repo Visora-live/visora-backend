@@ -1,5 +1,9 @@
-from pydantic_settings import BaseSettings
 from typing import List
+
+from pydantic import model_validator
+from pydantic_settings import BaseSettings
+
+_DEFAULT_SECRET = "change-me-before-production-use"
 
 
 class Settings(BaseSettings):
@@ -28,10 +32,26 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
+    # Cookie auth
+    COOKIE_SECURE: bool = False   # True in production (HTTPS required)
+    COOKIE_DOMAIN: str = ""       # e.g. ".visora.com" for subdomain sharing on AWS
+
     # Camera
     CAMERA_CONNECTION_MODE: str = "local_rtsp"  # "local_rtsp" | "cloud_ingest"
 
+    # Detection pre-warm: comma-separated camera IDs to spawn workers on backend start
+    DETECTION_PREWARM_CAMERAS: str = ""
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+
+    @model_validator(mode="after")
+    def validate_secret_key(self) -> "Settings":
+        if self.ENVIRONMENT == "production" and self.SECRET_KEY == _DEFAULT_SECRET:
+            raise ValueError(
+                "SECRET_KEY must be changed from the default value in production. "
+                "Set SECRET_KEY in your .env file."
+            )
+        return self
 
 
 settings = Settings()

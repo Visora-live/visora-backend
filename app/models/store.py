@@ -31,3 +31,7 @@ class Tienda(Base):
         "TiendaUsuario", back_populates="tienda"
     )
     alertas: Mapped[list["Alerta"]] = relationship("Alerta", back_populates="tienda")
+
+    @property
+    def camera_count(self) -> int:
+        return len(self.camaras)

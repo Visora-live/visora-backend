@@ -7,6 +7,7 @@ from app.models.event import Evento
 from app.models.event_image import EventoImagen
 from app.models.identification import Identificacion
 from app.models.alert import Alerta
+from app.models.recovery_request import SolicitudRecuperacion
 
 __all__ = [
     "Rol",
@@ -18,4 +19,5 @@ __all__ = [
     "EventoImagen",
     "Identificacion",
     "Alerta",
+    "SolicitudRecuperacion",
 ]

@@ -10,16 +10,22 @@ class Identificacion(Base):
     __tablename__ = "identificacion"
     __table_args__ = (
         Index("ix_identificacion_evento_imagen_id", "evento_imagen_id"),
+        Index("ix_identificacion_evento_id", "evento_id"),
         Index("ix_identificacion_dni", "dni"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    evento_imagen_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("evento_imagen.id"), nullable=False
+    evento_imagen_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("evento_imagen.id"), nullable=True
+    )
+    evento_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("evento.id"), nullable=True
     )
     nombre: Mapped[str | None] = mapped_column(String(100), nullable=True)
     apellido: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    apellido_materno: Mapped[str | None] = mapped_column(String(100), nullable=True)
     dni: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    edad: Mapped[int | None] = mapped_column(Integer, nullable=True)
     confianza_identificacion: Mapped[float] = mapped_column(
         Float, nullable=False, default=0.0, server_default=text("0")
     )
@@ -30,6 +36,7 @@ class Identificacion(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
 
-    evento_imagen: Mapped["EventoImagen"] = relationship(
+    evento_imagen: Mapped["EventoImagen | None"] = relationship(
         "EventoImagen", back_populates="identificaciones"
     )
+    evento: Mapped["Evento | None"] = relationship("Evento")

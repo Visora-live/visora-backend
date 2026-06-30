@@ -16,13 +16,10 @@ def list_users(
     skip: int = 0,
     limit: int = 50,
     rol_id: Optional[int] = None,
-    estado_acceso: Optional[bool] = None,
 ) -> list[Usuario]:
     query = db.query(Usuario)
     if rol_id is not None:
         query = query.filter(Usuario.rol_id == rol_id)
-    if estado_acceso is not None:
-        query = query.filter(Usuario.estado_acceso == estado_acceso)
     return query.offset(skip).limit(limit).all()
 
 
@@ -31,11 +28,19 @@ def get_user(db: Session, user_id: int) -> Usuario | None:
 
 
 def create_user(db: Session, payload: UserCreate) -> Usuario:
-    if db.query(Usuario).filter(Usuario.username == payload.username).first():
-        raise HTTPException(status_code=400, detail="Username already taken")
-    if payload.email:
-        if db.query(Usuario).filter(Usuario.email == payload.email).first():
-            raise HTTPException(status_code=400, detail="Email already registered")
+    from sqlalchemy import or_
+    conflict = (
+        db.query(Usuario)
+        .filter(or_(
+            Usuario.username == payload.username,
+            (Usuario.email == payload.email) if payload.email else False,
+        ))
+        .first()
+    )
+    if conflict:
+        if conflict.username == payload.username:
+            raise HTTPException(status_code=400, detail="Username already taken")
+        raise HTTPException(status_code=400, detail="Email already registered")
     if not db.get(Rol, payload.rol_id):
         raise HTTPException(status_code=404, detail="Role not found")
     data = payload.model_dump(exclude={"password"})
@@ -52,6 +57,10 @@ def update_user(db: Session, user_id: int, payload: UserUpdate) -> Usuario:
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     data = payload.model_dump(exclude_unset=True)
+    # Password change (admin): hash and store separately from plain fields.
+    new_password = data.pop("password", None)
+    if new_password:
+        user.contrasena = hash_password(new_password)
     if "username" in data:
         conflict = (
             db.query(Usuario)

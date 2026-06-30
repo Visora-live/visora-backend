@@ -39,6 +39,8 @@ def list_alerts(
     query = db.query(Alerta)
     if estado is not None:
         query = query.filter(Alerta.estado == estado)
+    else:
+        query = query.filter(Alerta.estado != "descartada")
     if severidad is not None:
         query = query.filter(Alerta.severidad == severidad)
     if tipo is not None:
@@ -56,7 +58,28 @@ def list_alerts(
         query = query.filter(Alerta.camara_id == camara_id)
     if evento_id is not None:
         query = query.filter(Alerta.evento_id == evento_id)
-    return query.offset(skip).limit(limit).all()
+    return query.order_by(Alerta.created_at.desc()).offset(skip).limit(limit).all()
+
+
+def count_unread(
+    db: Session,
+    tienda_id: Optional[int] = None,
+    usuario_id: Optional[int] = None,
+) -> int:
+    query = db.query(Alerta).filter(
+        Alerta.estado != "descartada",
+        Alerta.leida.is_(False),
+    )
+    if tienda_id is not None:
+        query = query.filter(Alerta.tienda_id == tienda_id)
+    elif usuario_id is not None:
+        assigned = (
+            db.query(TiendaUsuario.tienda_id)
+            .filter(TiendaUsuario.usuario_id == usuario_id)
+            .subquery()
+        )
+        query = query.filter(Alerta.tienda_id.in_(assigned))
+    return query.count()
 
 
 def get_alert(db: Session, alert_id: int) -> Alerta | None:

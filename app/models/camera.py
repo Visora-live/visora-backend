@@ -28,6 +28,10 @@ class Camara(Base):
         String(10), nullable=False, default="rtsp", server_default=text("'rtsp'")
     )
     tienda_id: Mapped[int] = mapped_column(Integer, ForeignKey("tienda.id"), nullable=False)
+    # Logical (soft) delete: hidden from listings but kept in the DB.
+    eliminado: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("false")
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

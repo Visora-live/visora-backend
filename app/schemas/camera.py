@@ -1,17 +1,20 @@
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
+
+CameraSourceType = Literal["rtsp_h264", "ip_webcam", "mjpeg"]
+CameraProtocolo = Literal["rtsp", "http", "https"]
 
 
 class CameraBase(BaseModel):
-    nombre_cam: str
-    direccion_ip: str
-    puerto: int = 8080
-    ubicacion_camara: Optional[str] = None
+    nombre_cam: str = Field(..., max_length=200)
+    direccion_ip: str = Field(..., max_length=255)
+    puerto: int = Field(8080, ge=1, le=65535)
+    ubicacion_camara: Optional[str] = Field(None, max_length=500)
     estado: bool = False
-    source_type: str = "rtsp_h264"
-    protocolo: str = "rtsp"
+    source_type: CameraSourceType = "rtsp_h264"
+    protocolo: CameraProtocolo = "rtsp"
     tienda_id: int
 
 
@@ -20,13 +23,13 @@ class CameraCreate(CameraBase):
 
 
 class CameraUpdate(BaseModel):
-    nombre_cam: Optional[str] = None
-    direccion_ip: Optional[str] = None
-    puerto: Optional[int] = None
-    ubicacion_camara: Optional[str] = None
+    nombre_cam: Optional[str] = Field(None, max_length=200)
+    direccion_ip: Optional[str] = Field(None, max_length=255)
+    puerto: Optional[int] = Field(None, ge=1, le=65535)
+    ubicacion_camara: Optional[str] = Field(None, max_length=500)
     estado: Optional[bool] = None
-    source_type: Optional[str] = None
-    protocolo: Optional[str] = None
+    source_type: Optional[CameraSourceType] = None
+    protocolo: Optional[CameraProtocolo] = None
     tienda_id: Optional[int] = None
 
 

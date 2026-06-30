@@ -13,11 +13,22 @@ def list_identifications(
     skip: int = 0,
     limit: int = 50,
     evento_imagen_id: Optional[int] = None,
+    evento_id: Optional[int] = None,
     fuente: Optional[str] = None,
 ) -> list[Identificacion]:
+    from sqlalchemy import or_
     query = db.query(Identificacion)
     if evento_imagen_id is not None:
         query = query.filter(Identificacion.evento_imagen_id == evento_imagen_id)
+    elif evento_id is not None:
+        query = query.filter(
+            or_(
+                Identificacion.evento_id == evento_id,
+                Identificacion.evento_imagen_id.in_(
+                    db.query(EventoImagen.id).filter(EventoImagen.evento_id == evento_id)
+                ),
+            )
+        )
     if fuente is not None:
         query = query.filter(Identificacion.fuente == fuente)
     return query.offset(skip).limit(limit).all()
@@ -28,8 +39,9 @@ def get_identification(db: Session, identification_id: int) -> Identificacion | 
 
 
 def create_identification(db: Session, payload: IdentificationCreate) -> Identificacion:
-    if not db.get(EventoImagen, payload.evento_imagen_id):
-        raise HTTPException(status_code=404, detail="Event image not found")
+    if payload.evento_imagen_id is not None:
+        if not db.get(EventoImagen, payload.evento_imagen_id):
+            raise HTTPException(status_code=404, detail="Event image not found")
     identification = Identificacion(**payload.model_dump())
     db.add(identification)
     db.commit()
