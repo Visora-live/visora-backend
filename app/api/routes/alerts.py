@@ -19,7 +19,6 @@ def list_alerts(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=500),
     estado: Optional[str] = None,
-    severidad: Optional[str] = None,
     tipo: Optional[str] = None,
     tienda_id: Optional[int] = None,
     camara_id: Optional[int] = None,
@@ -30,7 +29,7 @@ def list_alerts(
     usuario_id = None if is_admin(current_user) else current_user.id
     return alert_service.list_alerts(
         db, skip=skip, limit=limit,
-        estado=estado, severidad=severidad, tipo=tipo,
+        estado=estado, tipo=tipo,
         tienda_id=tienda_id, camara_id=camara_id, evento_id=evento_id,
         usuario_id=usuario_id,
     )

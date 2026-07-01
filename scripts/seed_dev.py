@@ -134,7 +134,6 @@ def seed():
             titulo="Intrusion detectada - Tienda Central",
             descripcion="Persona no autorizada detectada en entrada principal",
             tipo="intrusion",
-            severidad="alta",
             estado="abierta",
             leida=False,
             evento_id=evento.id,

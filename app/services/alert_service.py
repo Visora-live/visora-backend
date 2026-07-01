@@ -29,7 +29,6 @@ def list_alerts(
     skip: int = 0,
     limit: int = 50,
     estado: Optional[str] = None,
-    severidad: Optional[str] = None,
     tipo: Optional[str] = None,
     tienda_id: Optional[int] = None,
     camara_id: Optional[int] = None,
@@ -41,8 +40,6 @@ def list_alerts(
         query = query.filter(Alerta.estado == estado)
     else:
         query = query.filter(Alerta.estado != "descartada")
-    if severidad is not None:
-        query = query.filter(Alerta.severidad == severidad)
     if tipo is not None:
         query = query.filter(Alerta.tipo == tipo)
     if tienda_id is not None:

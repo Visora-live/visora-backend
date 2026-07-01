@@ -11,7 +11,6 @@ class Alerta(Base):
     __tablename__ = "alerta"
     __table_args__ = (
         Index("ix_alerta_estado", "estado"),
-        Index("ix_alerta_severidad", "severidad"),
         Index("ix_alerta_tipo", "tipo"),
         Index("ix_alerta_evento_id", "evento_id"),
         Index("ix_alerta_camara_id", "camara_id"),
@@ -24,9 +23,6 @@ class Alerta(Base):
     descripcion: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     tipo: Mapped[str] = mapped_column(
         String(40), nullable=False, default="manual", server_default=text("'manual'")
-    )
-    severidad: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="media", server_default=text("'media'")
     )
     estado: Mapped[str] = mapped_column(
         String(20), nullable=False, default="abierta", server_default=text("'abierta'")

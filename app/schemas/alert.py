@@ -3,7 +3,6 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-AlertSeveridad = Literal["baja", "media", "alta", "critica"]
 AlertTipo = Literal["manual", "facial_recognition", "weapon_detection", "suspicious_activity", "system"]
 AlertEstado = Literal["abierta", "reconocida", "resuelta", "descartada"]
 
@@ -12,7 +11,6 @@ class AlertBase(BaseModel):
     titulo: str = Field(..., max_length=500)
     descripcion: Optional[str] = Field(None, max_length=2000)
     tipo: str = "manual"
-    severidad: str = "media"
     estado: str = "abierta"
     leida: bool = False
     evento_id: Optional[int] = None
@@ -23,7 +21,6 @@ class AlertBase(BaseModel):
 
 class AlertCreate(AlertBase):
     tipo: AlertTipo = "manual"
-    severidad: AlertSeveridad = "media"
     estado: AlertEstado = "abierta"
 
 
@@ -31,7 +28,6 @@ class AlertUpdate(BaseModel):
     titulo: Optional[str] = Field(None, max_length=500)
     descripcion: Optional[str] = Field(None, max_length=2000)
     tipo: Optional[AlertTipo] = None
-    severidad: Optional[AlertSeveridad] = None
     estado: Optional[AlertEstado] = None
     leida: Optional[bool] = None
     evento_id: Optional[int] = None
