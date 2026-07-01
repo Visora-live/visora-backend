@@ -70,7 +70,7 @@ def update_event(db: Session, event_id: int, payload: EventUpdate) -> Evento:
             raise HTTPException(status_code=404, detail="Camera not found")
     for key, value in data.items():
         setattr(event, key, value)
-    if data.get("estado") in ("descartado", "revisado"):
+    if data.get("estado") == "descartado":
         db.query(Alerta).filter(Alerta.evento_id == event_id).update(
             {"estado": "resuelta"}, synchronize_session=False
         )

@@ -50,6 +50,29 @@ async def upload_event_image(
     )
 
 
+@router.get("/event-images/by-event/{evento_id}/file")
+def get_event_image_file_by_event(
+    evento_id: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    images = event_image_service.list_event_images(db, skip=0, limit=1, evento_id=evento_id)
+    if not images:
+        raise HTTPException(status_code=404, detail="No image for this event")
+    ev_img = images[0]
+    event = db.get(Evento, ev_img.evento_id)
+    if not event or not user_owns_camera(db, current_user, event.camara_id):
+        raise HTTPException(status_code=403, detail="Access denied")
+    full_path = os.path.join(settings.LOCAL_STORAGE_PATH, ev_img.storage_ref)
+    if not os.path.exists(full_path):
+        raise HTTPException(status_code=404, detail="Image file not found on disk")
+    return FileResponse(
+        full_path,
+        media_type=ev_img.content_type or "image/jpeg",
+        headers={"Cache-Control": "no-store, no-cache"},
+    )
+
+
 @router.get("/event-images/{event_image_id}/file")
 def get_event_image_file(
     event_image_id: int,
